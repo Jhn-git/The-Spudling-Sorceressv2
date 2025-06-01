@@ -1,4 +1,4 @@
-// --- Game State (Same as before, ensure it matches your constants) ---
+// --- Game State ---
 const PLOTS_KEY = 'spudling_plots';
 const CURRENCY_KEY = 'spudling_currency';
 const LAST_TIME_KEY = 'spudling_last_time';
@@ -8,8 +8,8 @@ const SEEDS = {
     star_spud: {
         name: 'Star Spud',
         emoji: '🥔',
-        plantEmoji: '🌰',
-        readyEmoji: '🌟🥔',
+        plantEmoji: '🌰', // Emoji for the growing state
+        readyEmoji: '🌟🥔', // Emoji for the ready-to-harvest state
         growTime: 60, // Base grow time in seconds
         yield: 10,
         cost: 0
@@ -23,25 +23,26 @@ const SEEDS = {
         yield: 18,
         cost: 5
     }
-    // Add more seeds here
+    // Add more seeds here following the same structure
 };
 
 const NURTURE_EMOJI = '💧';
 const BASE_NURTURE_TIME_REDUCTION = 5; // seconds reduced per nurture (base)
-const NURTURE_WINDOW = 4; // seconds nurture emoji is visible
-const NURTURE_CHANCE_PER_SECOND = 0.18; // chance per tick to show nurture
+const NURTURE_WINDOW = 4; // seconds nurture emoji is visible before disappearing if not tapped
+const NURTURE_CHANCE_PER_SECOND = 0.18; // chance per tick to show nurture opportunity
 
 const UPGRADE_DEFS = {
     faster_growth: {
         name: 'Faster Growth',
-        descTemplate: (effect) => `Time Multiplier: ${(effect * 100).toFixed(0)}%`,
-        cost: [50, 120, 300, 800, 2000], // cost per level (index 0 is for level 1)
-        effect: [0.9, 0.81, 0.729, 0.6561, 0.59049], // cumulative multiplier per level
+        // descTemplate function creates the descriptive text for the upgrade level
+        descTemplate: (effectMultiplier) => `Time Multiplier: ${(effectMultiplier * 100).toFixed(0)}%`,
+        cost: [50, 120, 300, 800, 2000], // cost per level (index 0 is for level 1 cost)
+        effect: [0.9, 0.81, 0.729, 0.6561, 0.59049], // cumulative multiplier per level (index 0 is for level 1 effect)
         maxLevel: 5
     },
     better_nurture: {
         name: 'Better Nurturing',
-        descTemplate: (effect) => `Nurture Bonus: +${effect}s`,
+        descTemplate: (effectSeconds) => `Nurture Bonus: +${effectSeconds}s`,
         cost: [40, 100, 250, 600, 1500],
         effect: [7, 9, 11, 13, 15], // seconds reduced per level
         maxLevel: 5
@@ -51,26 +52,32 @@ const UPGRADE_DEFS = {
 
 let currency = 0;
 let plots = [
+    // state: 'empty', 'awakened', 'growing', 'ready'
+    // growTimeSnapshot: Stores the calculated grow time when planted, for progress bar accuracy
     { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 },
     { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 },
     { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 }
 ];
-let upgrades = { faster_growth: 0, better_nurture: 0 }; // Stores current level (0 = not owned)
-let selectedSeed = 'star_spud';
-let gameTickInterval = null;
-let offlineSummary = '';
+let upgrades = { faster_growth: 0, better_nurture: 0 }; // Stores current level (0 = not owned, 1 = first level, etc.)
+let selectedSeed = 'star_spud'; // The currently selected seed for planting
+let gameTickInterval = null; // Holds the interval ID for the game tick
+let offlineSummary = ''; // Message to display upon returning to the game
 
 // --- DOM Elements ---
 const currencyEl = document.getElementById('currency');
-const plotListArea = document.getElementById('plot-list-area'); // Changed from plotArea
+const plotListArea = document.getElementById('plot-list-area'); // The <ul> where plots are rendered
 const feedbackEl = document.getElementById('feedback');
-const seedSelectControls = document.getElementById('seed-select-controls'); // For event delegation on seed buttons
-const upgradeListUl = document.getElementById('upgrade-list'); // The UL for upgrades
+const seedSelectControls = document.getElementById('seed-select-controls'); // The div containing seed buttons
+const upgradeListUl = document.getElementById('upgrade-list'); // The <ul> where upgrades are rendered
 
-const plotTemplate = document.getElementById('plot-template').content;
+const plotTemplate = document.getElementById('plot-template').content; // Access the content of the template
 const upgradeTemplate = document.getElementById('upgrade-template').content;
 
 // --- Utility Functions ---
+
+/**
+ * Saves the current game state to Local Storage.
+ */
 function saveGame() {
     localStorage.setItem(CURRENCY_KEY, currency);
     localStorage.setItem(PLOTS_KEY, JSON.stringify(plots));
@@ -78,6 +85,9 @@ function saveGame() {
     localStorage.setItem(LAST_TIME_KEY, Date.now());
 }
 
+/**
+ * Loads game state from Local Storage and calculates offline progress.
+ */
 function loadGame() {
     currency = parseInt(localStorage.getItem(CURRENCY_KEY)) || 0;
     const savedPlots = localStorage.getItem(PLOTS_KEY);
@@ -85,30 +95,32 @@ function loadGame() {
     const savedUpgrades = localStorage.getItem(UPGRADE_KEY);
     if (savedUpgrades) upgrades = JSON.parse(savedUpgrades);
 
-    // Offline progress
+    // Calculate offline progress
     const lastTime = parseInt(localStorage.getItem(LAST_TIME_KEY) || Date.now());
     const now = Date.now();
     const elapsedSeconds = Math.floor((now - lastTime) / 1000);
+
     let totalGainedCurrency = 0;
     let totalNurtureTimeSaved = 0;
 
     plots.forEach((plot) => {
         if (plot.state === 'growing' && plot.plantedAt) {
-            // Estimate nurtures during offline period
-            // This is a heuristic: assumes constant chance and immediate effect for simplicity
-            let estimatedNurtures = Math.floor(elapsedSeconds * NURTURE_CHANCE_PER_SECOND);
-            let nurtureTimeReductionForPlot = estimatedNurtures * getCurrentNurtureTimeReduction();
-            totalNurtureTimeSaved += nurtureTimeReductionForPlot;
+            // Simulate nurtures during offline period as a heuristic
+            // This is an estimate of how many times a nurture *could* have happened
+            let estimatedNurtureOpportunities = Math.floor(elapsedSeconds * NURTURE_CHANCE_PER_SECOND);
+            let nurtureTimeReductionForPlot = estimatedNurtureOpportunities * getCurrentNurtureTimeReduction();
+            totalNurtureTimeSaved += nurtureTimeReductionForPlot; // Accumulate for feedback
 
+            // Total time to advance includes regular elapsed time plus simulated nurture time
             let timeToAdvance = elapsedSeconds + nurtureTimeReductionForPlot;
             
             if (plot.timeLeft <= timeToAdvance) {
                 totalGainedCurrency += SEEDS[plot.seed].yield;
-                plot.state = 'ready';
+                plot.state = 'ready'; // Crop is ready
                 plot.timeLeft = 0;
-                plot.nurtureActive = false;
+                plot.nurtureActive = false; // Clear any pending nurture
             } else {
-                plot.timeLeft -= timeToAdvance;
+                plot.timeLeft -= timeToAdvance; // Subtract advanced time
             }
         }
     });
@@ -117,135 +129,188 @@ function loadGame() {
         currency += totalGainedCurrency;
         offlineSummary = `Welcome back! While you were away, ${totalGainedCurrency}💎 was earned.`;
         if (totalNurtureTimeSaved > 0) {
-            offlineSummary += ` Estimated nurture bonus saved ${totalNurtureTimeSaved}s.`;
+            offlineSummary += ` (Nurture bonus saved ~${totalNurtureTimeSaved}s of growth time!)`;
         }
     }
 }
 
+/**
+ * Calculates the current grow time for a seed based on upgrades.
+ * @param {string} seedKey - The key of the seed.
+ * @returns {number} The calculated grow time in seconds.
+ */
 function getCurrentGrowTime(seedKey) {
     let baseTime = SEEDS[seedKey].growTime;
-    const growthLevel = upgrades.faster_growth;
+    const growthLevel = upgrades.faster_growth; // Get current level of faster_growth upgrade
     if (growthLevel > 0 && UPGRADE_DEFS.faster_growth.effect[growthLevel - 1]) {
+        // Apply multiplier if upgrade is active. level-1 because effect array is 0-indexed.
         baseTime *= UPGRADE_DEFS.faster_growth.effect[growthLevel - 1];
     }
-    return Math.floor(baseTime);
+    return Math.floor(baseTime); // Return as a whole number
 }
 
+/**
+ * Calculates the current time reduction per nurture based on upgrades.
+ * @returns {number} The time reduction in seconds.
+ */
 function getCurrentNurtureTimeReduction() {
     const nurtureLevel = upgrades.better_nurture;
     if (nurtureLevel > 0 && UPGRADE_DEFS.better_nurture.effect[nurtureLevel - 1]) {
         return UPGRADE_DEFS.better_nurture.effect[nurtureLevel - 1];
     }
-    return BASE_NURTURE_TIME_REDUCTION;
+    return BASE_NURTURE_TIME_REDUCTION; // Default if no upgrade
 }
 
+/**
+ * Plays a simple sound effect using Web Audio API.
+ * @param {string} type - Type of sound ('harvest', 'nurture', 'upgrade', 'plant', 'awaken', 'error').
+ */
 function playSound(type) {
-    // Basic sound implementation (same as before)
-    if (!window.AudioContext && !window.webkitAudioContext) return;
+    if (!window.AudioContext && !window.webkitAudioContext) return; // Check for browser support
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    let freq = 440;
-    if (type === 'harvest') freq = 660;
-    if (type === 'nurture') freq = 880;
-    if (type === 'upgrade') freq = 550;
-    if (type === 'plant') freq = 330;
-    if (type === 'awaken') freq = 220;
-    if (type === 'error') freq = 110;
+    let freq = 440; // Default frequency
+    let duration = 0.18; // Default duration
+
+    switch (type) {
+        case 'harvest': freq = 660; duration = 0.2; break;
+        case 'nurture': freq = 880; duration = 0.15; break;
+        case 'upgrade': freq = 550; duration = 0.2; break;
+        case 'plant': freq = 330; duration = 0.15; break;
+        case 'awaken': freq = 220; duration = 0.1; break;
+        case 'error': freq = 110; duration = 0.3; break;
+        default: freq = 440; // Fallback
+    }
 
     const o = ctx.createOscillator();
-    o.type = 'triangle'; // triangle, sine, square, sawtooth
+    o.type = 'triangle'; // sine, square, sawtooth
     o.frequency.setValueAtTime(freq, ctx.currentTime);
 
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.08, ctx.currentTime); // Volume
-    g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.18); // Fade out
+    g.gain.setValueAtTime(0.08, ctx.currentTime); // Initial volume
+    g.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration); // Fade out
 
     o.connect(g).connect(ctx.destination);
     o.start();
-    o.stop(ctx.currentTime + 0.18); // Duration of the sound
-    setTimeout(() => { // Close context after sound finishes to free resources
+    o.stop(ctx.currentTime + duration); // Stop sound after duration
+
+    // Ensure audio context is closed to free resources
+    setTimeout(() => {
         if (ctx.state !== 'closed') {
             ctx.close().catch(e => console.warn("AudioContext close error:", e));
         }
-    }, 250);
+    }, duration * 1000 + 50); // Small delay to ensure sound finishes
 }
 
-
+/**
+ * Displays a temporary feedback message to the user.
+ * @param {string} msg - The message to display.
+ * @param {string} [soundType=null] - Optional sound type to play with the message.
+ */
 function showFeedback(msg, soundType = null) {
     feedbackEl.textContent = msg;
     if (soundType) playSound(soundType);
+    // Clear the message after a delay, but only if it hasn't been replaced by a new message
     setTimeout(() => {
-        if (feedbackEl.textContent === msg) feedbackEl.textContent = ''; // Clear only if it's the same message
+        if (feedbackEl.textContent === msg) {
+            feedbackEl.textContent = '';
+        }
     }, 2000);
 }
 
+// --- Rendering Functions ---
 
-// --- Rendering Functions (Adapted for Templates) ---
-
+/**
+ * Renders/updates all plot items in the UI.
+ */
 function renderPlots() {
-    plotListArea.innerHTML = ''; // Clear previous plots
+    plotListArea.innerHTML = ''; // Clear existing plots before re-rendering
 
     plots.forEach((plot, index) => {
-        const plotNode = plotTemplate.cloneNode(true);
+        const plotNode = plotTemplate.cloneNode(true); // Clone content from the template
         const plotItemLi = plotNode.querySelector('.plot-item');
-        plotItemLi.dataset.plotIndex = index;
+        plotItemLi.dataset.plotIndex = index; // Store plot index on the li for event handling
         plotItemLi.setAttribute('aria-label', `Plot ${index + 1}, state: ${plot.state}`);
 
-        plotNode.querySelector('.plot-name-label').textContent = `Plot ${index + 1}:`;
+        // Get references to elements within the cloned template
+        const nameLabel = plotNode.querySelector('.plot-name-label');
         const stateIndicator = plotNode.querySelector('.plot-state-indicator');
+        const plotEmojiSpan = plotNode.querySelector('.plot-emoji'); // New span for specific plant emoji
+        const plotPlantNameSpan = plotNode.querySelector('.plot-plant-name'); // New span for plant name
+        const plotStatusTextSpan = plotNode.querySelector('.plot-status-text'); // New span for status text like (Ready!)
         const progressBarSpan = plotNode.querySelector('.plot-progress-bar');
         const timerSpan = plotNode.querySelector('.plot-timer');
 
-        // Hide all action buttons by default
-        plotNode.querySelectorAll('.plot-action-btn').forEach(btn => btn.style.display = 'none');
+        // Hide all action buttons by default, then show relevant ones
+        const actionButtons = plotNode.querySelectorAll('.plot-action-btn');
+        actionButtons.forEach(btn => btn.style.display = 'none');
 
-        let stateText = '';
-        progressBarSpan.textContent = '';
-        timerSpan.textContent = '';
+        // Update plot content based on its state
+        nameLabel.textContent = `Plot ${index + 1}:`; // Plot number
 
         if (plot.state === 'empty') {
-            stateText = '[Empty 💨]';
+            stateIndicator.textContent = '[Empty 💨]';
             plotNode.querySelector('.awaken-btn').style.display = 'inline-block';
+            plotEmojiSpan.textContent = ''; // Clear plant emoji
+            plotPlantNameSpan.textContent = '';
+            plotStatusTextSpan.textContent = '';
+            progressBarSpan.textContent = '';
+            timerSpan.textContent = '';
         } else if (plot.state === 'awakened') {
-            stateText = '[Awakened ✨]';
+            stateIndicator.textContent = '[Awakened ✨]';
             plotNode.querySelector('.plant-btn').style.display = 'inline-block';
+            plotEmojiSpan.textContent = '';
+            plotPlantNameSpan.textContent = '';
+            plotStatusTextSpan.textContent = '(Tap to plant selected seed)';
+            progressBarSpan.textContent = '';
+            timerSpan.textContent = '';
         } else if (plot.state === 'growing') {
             const seedInfo = SEEDS[plot.seed];
-            stateText = `[${seedInfo.plantEmoji} ${seedInfo.name}]`;
+            stateIndicator.textContent = ''; // No general indicator, emoji/name replace it
+            plotEmojiSpan.textContent = seedInfo.plantEmoji;
+            plotPlantNameSpan.textContent = seedInfo.name;
+            plotStatusTextSpan.textContent = ''; // No additional status text for growing
             
             // Progress bar
             let progress = 0;
-            if (plot.growTimeSnapshot > 0) { // Ensure growTimeSnapshot is set
-                 progress = Math.max(0, Math.min(1, 1 - plot.timeLeft / plot.growTimeSnapshot));
+            if (plot.growTimeSnapshot > 0) {
+                progress = Math.max(0, Math.min(1, 1 - plot.timeLeft / plot.growTimeSnapshot));
             }
-            let barLen = 8;
+            let barLen = 12; // Length of the progress bar
             let filled = Math.round(progress * barLen);
             progressBarSpan.textContent = `Progress: [${'▓'.repeat(filled)}${'░'.repeat(barLen - filled)}]`;
             timerSpan.textContent = `⏳${plot.timeLeft}s`;
 
             if (plot.nurtureActive) {
                 plotNode.querySelector('.nurture-btn').style.display = 'inline-block';
-                plotNode.querySelector('.nurture-btn').textContent = `${NURTURE_EMOJI} Nurture!`;
             }
         } else if (plot.state === 'ready') {
             const seedInfo = SEEDS[plot.seed];
-            stateText = `[${seedInfo.readyEmoji} ${seedInfo.name} (Ready!)]`;
+            stateIndicator.textContent = '';
+            plotEmojiSpan.textContent = seedInfo.readyEmoji;
+            plotPlantNameSpan.textContent = seedInfo.name;
+            plotStatusTextSpan.textContent = '(Ready!)';
             plotNode.querySelector('.harvest-btn').style.display = 'inline-block';
+            progressBarSpan.textContent = ''; // Clear progress bar
+            timerSpan.textContent = '';
         }
-        stateIndicator.textContent = stateText;
-        plotListArea.appendChild(plotNode);
+        plotListArea.appendChild(plotNode); // Add the fully configured plot item to the list
     });
 }
 
+/**
+ * Renders/updates the upgrade list in the UI.
+ */
 function renderUpgrades() {
-    upgradeListUl.innerHTML = ''; // Clear previous list
+    upgradeListUl.innerHTML = ''; // Clear existing upgrades before re-rendering
 
     Object.keys(UPGRADE_DEFS).forEach(key => {
         const def = UPGRADE_DEFS[key];
-        const currentLevel = upgrades[key] || 0; // 0 if not owned
+        const currentLevel = upgrades[key] || 0; // Current level of this upgrade (0 if not purchased yet)
+        const nextLevel = currentLevel + 1;
 
         const upgradeNode = upgradeTemplate.cloneNode(true);
         const upgradeItemLi = upgradeNode.querySelector('.upgrade-item');
-        upgradeItemLi.dataset.upgradeKey = key;
+        upgradeItemLi.dataset.upgradeKey = key; // Store upgrade key for event handling
 
         const nameEl = upgradeNode.querySelector('.upgrade-name');
         const descEl = upgradeNode.querySelector('.upgrade-description');
@@ -255,99 +320,138 @@ function renderUpgrades() {
         nameEl.textContent = `${def.name} (Lv ${currentLevel})`;
 
         if (currentLevel < def.maxLevel) {
-            const nextLevelEffect = def.effect[currentLevel]; // Effect of the level they are buying
-            descEl.textContent = `Next: ${def.descTemplate(nextLevelEffect)}`;
-            costSpan.textContent = def.cost[currentLevel];
-            purchaseBtn.disabled = currency < def.cost[currentLevel];
-            purchaseBtn.innerHTML = `Cost: <span class="upgrade-cost">${def.cost[currentLevel]}</span>💎 [Upgrade]`;
+            const nextLevelCost = def.cost[currentLevel]; // Cost for the NEXT level
+            let nextLevelEffectValue;
+
+            // Determine what the 'next' effect value is for the description
+            if (key === 'faster_growth') {
+                nextLevelEffectValue = def.effect[currentLevel]; // Multiplier for next level
+            } else if (key === 'better_nurture') {
+                nextLevelEffectValue = def.effect[currentLevel]; // Absolute seconds for next level
+            }
+            descEl.textContent = `Next: ${def.descTemplate(nextLevelEffectValue)}`; // Use the template function
+            
+            costSpan.textContent = nextLevelCost;
+            purchaseBtn.disabled = currency < nextLevelCost;
+            purchaseBtn.innerHTML = `Cost: <span class="upgrade-cost">${nextLevelCost}</span>💎 [Upgrade]`;
         } else {
-            descEl.textContent = `Max Level Reached! (${def.descTemplate(def.effect[currentLevel -1])})`;
+            // Max level reached
+            const maxEffectValue = def.effect[def.maxLevel - 1];
+            descEl.textContent = `Max Level! (${def.descTemplate(maxEffectValue)})`;
             purchaseBtn.disabled = true;
             purchaseBtn.textContent = '[Max Level]';
+            costSpan.textContent = ''; // Clear cost display
         }
         upgradeListUl.appendChild(upgradeNode);
     });
 }
 
+/**
+ * Updates the currency display.
+ */
 function renderCurrency() {
     currencyEl.textContent = currency;
-    // Potentially re-render upgrades if currency change might enable buttons
-    renderUpgrades();
+    // Call renderUpgrades here to ensure upgrade button states (disabled/enabled) are updated
+    renderUpgrades(); 
 }
 
+/**
+ * Renders/updates the seed selection buttons.
+ */
 function renderSeedSelect() {
     const seedButtons = seedSelectControls.querySelectorAll('.seed-btn');
     seedButtons.forEach(btn => {
         const seedKey = btn.dataset.seed;
         const seedInfo = SEEDS[seedKey];
-        btn.classList.toggle('selected', seedKey === selectedSeed);
+        btn.classList.toggle('selected', seedKey === selectedSeed); // Add/remove 'selected' class
+        
+        // Update button text including cost
         btn.textContent = `Plant ${seedInfo.emoji} ${seedInfo.name}`;
         if (seedInfo.cost > 0) {
             btn.textContent += ` (Cost: ${seedInfo.cost}💎)`;
         }
+        // Also disable if not enough currency to plant
+        btn.disabled = currency < seedInfo.cost;
     });
 }
 
 // --- Game Logic / Tick ---
+
+/**
+ * The main game loop function, executed every second.
+ */
 function gameTick() {
-    let needsRender = false;
+    let needsRender = false; // Flag to optimize UI re-renders
+
     plots.forEach((plot, index) => {
         if (plot.state === 'growing') {
-            needsRender = true; // Assume render needed if anything is growing for timer update
-            // Nurture chance
+            needsRender = true; // Something is growing, so UI needs update
+            
+            // Nurture chance: if no nurture active, try to spawn one
             if (!plot.nurtureActive && Math.random() < NURTURE_CHANCE_PER_SECOND) {
                 plot.nurtureActive = true;
+                // Set a timeout for the nurture emoji to disappear if not tapped
                 setTimeout(() => {
-                    if (plot.nurtureActive) { // Check if it wasn't already nurtured
+                    if (plot.nurtureActive) { // Check if it's still active (wasn't tapped)
                         plot.nurtureActive = false;
-                        if (plot.state === 'growing') renderPlots(); // Re-render if still growing to remove nurture
+                        if (plot.state === 'growing') { // Only re-render if plot is still growing
+                            renderPlots(); // Update UI to remove nurture emoji
+                        }
                     }
                 }, NURTURE_WINDOW * 1000);
             }
 
-            plot.timeLeft--;
+            plot.timeLeft--; // Decrement time remaining
 
             if (plot.timeLeft <= 0) {
-                plot.state = 'ready';
+                plot.state = 'ready'; // Crop is ready to harvest
                 plot.timeLeft = 0;
-                plot.nurtureActive = false; // Clear nurture if it becomes ready
+                plot.nurtureActive = false; // Clear any pending nurture
             }
         }
     });
 
     if (needsRender) {
-        renderPlots(); // Update timers and progress bars
+        renderPlots(); // Update plot timers and progress bars
     }
-    renderCurrency(); // Update currency display (might also re-render upgrades)
-    saveGame();
+    renderCurrency(); // Update currency and re-render upgrades
+    saveGame(); // Save game state every tick
 }
 
+/**
+ * Starts the main game loop timer.
+ */
 function startGameTimers() {
-    if (gameTickInterval) clearInterval(gameTickInterval);
-    gameTickInterval = setInterval(gameTick, 1000);
+    if (gameTickInterval) clearInterval(gameTickInterval); // Clear any existing interval
+    gameTickInterval = setInterval(gameTick, 1000); // Set new interval for 1 second ticks
 }
 
-// --- Event Handlers (Using Event Delegation) ---
+// --- Event Handlers (Using Event Delegation for Efficiency) ---
 
+/**
+ * Handles clicks on the seed selection buttons.
+ */
 seedSelectControls.addEventListener('click', (e) => {
     const seedButton = e.target.closest('.seed-btn');
     if (seedButton && seedButton.dataset.seed) {
-        selectedSeed = seedButton.dataset.seed;
-        renderSeedSelect();
-        // Potentially provide feedback or visual cue for selection
-        // showFeedback(`Selected: ${SEEDS[selectedSeed].name}`);
+        selectedSeed = seedButton.dataset.seed; // Set the globally selected seed
+        renderSeedSelect(); // Update UI to show selection
+        showFeedback(`Selected: ${SEEDS[selectedSeed].name} for planting.`, null);
     }
 });
 
+/**
+ * Handles clicks within the plot area (awaken, plant, nurture, harvest actions).
+ */
 plotListArea.addEventListener('click', (e) => {
     const target = e.target;
-    const plotItemLi = target.closest('.plot-item');
-    if (!plotItemLi) return;
+    const plotItemLi = target.closest('.plot-item'); // Find the LI element representing the plot
+    if (!plotItemLi) return; // Not a click on a plot item
 
     const plotIndex = parseInt(plotItemLi.dataset.plotIndex);
-    const plot = plots[plotIndex];
+    const plot = plots[plotIndex]; // Get the plot object from game state
 
-    // Determine which button within the plot was clicked (if any)
+    // Determine which specific action button (if any) was clicked
     const awakenButton = target.closest('.awaken-btn');
     const plantButton = target.closest('.plant-btn');
     const nurtureButton = target.closest('.nurture-btn');
@@ -363,25 +467,28 @@ plotListArea.addEventListener('click', (e) => {
             plot.state = 'growing';
             plot.seed = selectedSeed;
             plot.plantedAt = Date.now();
-            plot.growTimeSnapshot = getCurrentGrowTime(selectedSeed); // Snapshot for progress bar
-            plot.timeLeft = plot.growTimeSnapshot;
-            plot.nurtureActive = false;
+            plot.growTimeSnapshot = getCurrentGrowTime(selectedSeed); // Store calculated grow time
+            plot.timeLeft = plot.growTimeSnapshot; // Initial time left
+            plot.nurtureActive = false; // Ensure no nurture is active on fresh plant
             showFeedback(`${seedInfo.name} planted on Plot ${plotIndex + 1}!`, 'plant');
         } else {
             showFeedback('Not enough 💎 to plant!', 'error');
         }
     } else if (nurtureButton && plot.state === 'growing' && plot.nurtureActive) {
+        // Nurture button clicked, consume nurture
         plot.timeLeft = Math.max(0, plot.timeLeft - getCurrentNurtureTimeReduction());
         plot.nurtureActive = false; // Nurture consumed
         showFeedback('Nurtured! ✨', 'nurture');
     } else if (harvestButton && plot.state === 'ready') {
+        // Harvest button clicked
         const harvestedYield = SEEDS[plot.seed].yield;
         currency += harvestedYield;
         showFeedback(`Harvested ${SEEDS[plot.seed].name}! +${harvestedYield}💎`, 'harvest');
-        // Reset plot
+        // Reset plot to empty state
         plots[plotIndex] = { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 };
     } else {
-        // If no specific button, but a nurture is active, and the plot area was tapped
+        // Fallback: If no specific button was clicked, but the plot itself was clicked
+        // and a nurture opportunity was active (allowing tapping anywhere on the plot item for nurture)
         if (plot.state === 'growing' && plot.nurtureActive) {
              plot.timeLeft = Math.max(0, plot.timeLeft - getCurrentNurtureTimeReduction());
              plot.nurtureActive = false;
@@ -389,55 +496,61 @@ plotListArea.addEventListener('click', (e) => {
         }
     }
 
-    saveGame();
-    renderPlots();
-    renderCurrency(); // This will also call renderUpgrades
+    saveGame(); // Save state after any action
+    renderPlots(); // Re-render plots to reflect new state
+    renderCurrency(); // Update currency and re-render upgrades (chained)
 });
 
-
+/**
+ * Handles clicks on upgrade purchase buttons.
+ */
 upgradeListUl.addEventListener('click', (e) => {
     const purchaseButton = e.target.closest('.upgrade-purchase-btn');
-    if (!purchaseButton || purchaseButton.disabled) return;
+    if (!purchaseButton || purchaseButton.disabled) return; // Only process if button is clickable
 
     const upgradeItemLi = e.target.closest('.upgrade-item');
-    if (!upgradeItemLi) return;
+    if (!upgradeItemLi) return; // Should not happen with current delegation
 
-    const upgradeKey = upgradeItemLi.dataset.upgradeKey;
+    const upgradeKey = upgradeItemLi.dataset.upgradeKey; // Get the upgrade key
     const def = UPGRADE_DEFS[upgradeKey];
     const currentLevel = upgrades[upgradeKey] || 0;
 
-    if (currentLevel < def.maxLevel) {
-        const cost = def.cost[currentLevel];
+    if (currentLevel < def.maxLevel) { // Check if not already max level
+        const cost = def.cost[currentLevel]; // Cost for the next level
         if (currency >= cost) {
             currency -= cost;
-            upgrades[upgradeKey] = currentLevel + 1;
+            upgrades[upgradeKey] = currentLevel + 1; // Increment level
             showFeedback(`Upgraded: ${def.name} to Lv ${upgrades[upgradeKey]}!`, 'upgrade');
             saveGame();
             renderUpgrades(); // Re-render upgrades to show new level and next cost
-            renderCurrency(); // Update currency display
-            renderPlots(); // Grow times might change
+            renderCurrency(); // Update currency display (this will also call renderUpgrades)
+            renderPlots(); // Re-render plots as grow times might have changed due to upgrades
         } else {
-            // This case should ideally be prevented by the button being disabled, but good to have
-            showFeedback('Not enough 💎!', 'error');
+            showFeedback('Not enough 💎!', 'error'); // Should be prevented by disabled button
         }
     }
 });
 
 
-// --- Init ---
+// --- Initialization ---
+
+/**
+ * Initializes the game on page load.
+ */
 function initializeGame() {
     loadGame(); // Load existing game data or defaults
-    renderCurrency();
+    renderCurrency(); // Renders currency and triggers upgrade render
     renderSeedSelect();
-    renderUpgrades();
-    renderPlots();
-    startGameTimers();
+    renderPlots(); // Render plots based on loaded state
+    startGameTimers(); // Start the game loop
+
+    // Show offline summary if any earnings occurred
     if (offlineSummary) {
-        showFeedback(offlineSummary); // Show after initial render
+        showFeedback(offlineSummary, null); // No sound for offline summary initially
         offlineSummary = ''; // Clear after showing
     }
     console.log("Game Initialized: The Spudling Sorceress");
 }
 
-// Wait for the DOM to be fully loaded before initializing
+// Ensure the DOM is fully loaded before initializing the game
 document.addEventListener('DOMContentLoaded', initializeGame);

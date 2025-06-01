@@ -1,33 +1,36 @@
 /* style.css */
 
 /* --- Global Resets & Base Styles --- */
+/* Resets default browser styling for consistent layout */
 *,
 *::before,
 *::after {
-    box-sizing: border-box;
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
     margin: 0;
     padding: 0;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    background-color: #1e1e1e; /* Default Dark Mode Background */
-    color: #e0e0e0;           /* Default Dark Mode Text */
-    padding: 1em;
-    transition: background-color 0.3s, color 0.3s;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* A clean, readable sans-serif font stack */
+    line-height: 1.6; /* Improve readability of text */
+    background-color: #1e1e1e; /* Default Dark Mode Background: Deep charcoal */
+    color: #e0e0e0;           /* Default Dark Mode Text: Light grey */
+    padding: 1em; /* Overall page padding */
+    transition: background-color 0.3s, color 0.3s; /* Smooth transition for dark/light mode toggle */
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
+    flex-direction: column; /* Stack content vertically */
+    align-items: center; /* Center content horizontally on the page */
+    min-height: 100vh; /* Ensure body takes at least full viewport height */
 }
 
-/* --- Light Mode Theme --- */
+/* --- Light Mode Theme Overrides --- */
+/* Styles that apply when the 'dark' class is NOT present on the body (i.e., light mode) */
 body:not(.dark) {
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #f4f4f4; /* Light mode background: Off-white */
+    color: #333;           /* Light mode text: Dark grey */
 }
 
+/* Light mode specific styles for elements that change appearance */
 body:not(.dark) .dark-toggle {
     background-color: #f0f0f0;
     color: #333;
@@ -39,14 +42,14 @@ body:not(.dark) .dark-toggle:active {
 
 body:not(.dark) .plot-item,
 body:not(.dark) .upgrade-item {
-    background-color: #ffffff;
-    border: 1px solid #ddd;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: #ffffff; /* White card background */
+    border: 1px solid #ddd;   /* Lighter border */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Subtle shadow */
 }
 
 body:not(.dark) button,
 body:not(.dark) .btn {
-    background-color: #e9e9e9;
+    background-color: #e9e9e9; /* Light button background */
     color: #333;
     border: 1px solid #ccc;
 }
@@ -61,40 +64,51 @@ body:not(.dark) .btn:disabled {
     border-color: #ddd;
 }
 body:not(.dark) .seed-btn.selected {
-    background-color: #007bff;
+    background-color: #007bff; /* Keep blue for selected seed */
     border-color: #0056b3;
     color: white;
 }
 body:not(.dark) .text-muted {
-    color: #666;
+    color: #666; /* Darker muted text */
+}
+body:not(.dark) .plot-name-label {
+    color: #555;
+}
+body:not(.dark) .plot-progress-bar {
+    color: #888;
+}
+body:not(.dark) .plot-timer {
+    color: #777;
 }
 
 
 /* --- Typography --- */
+/* Consistent spacing and line height for headings */
 h1, h2, h3 {
     margin-bottom: 0.75em;
     line-height: 1.2;
 }
 
 h1 {
-    font-size: 2em; /* Adjust as needed */
+    font-size: 2em; /* Large main title */
     text-align: center;
     margin-bottom: 0.5em;
-    color: #58a6ff; /* A nice bright color for dark mode title */
+    color: #58a6ff; /* A nice bright blue color for the title in dark mode */
 }
 body:not(.dark) h1 {
-    color: #0056b3;
+    color: #0056b3; /* Darker blue for light mode title */
 }
 
 
 h2 {
     font-size: 1.5em;
-    border-bottom: 1px solid #444;
+    border-bottom: 1px solid #444; /* Separator line below section titles */
     padding-bottom: 0.3em;
     margin-top: 1.5em; /* Space before sections */
+    text-align: center; /* Center section titles */
 }
 body:not(.dark) h2 {
-    border-bottom-color: #ccc;
+    border-bottom-color: #ccc; /* Lighter separator in light mode */
 }
 
 p {
@@ -102,11 +116,11 @@ p {
 }
 
 .small-text {
-    font-size: 0.85em;
+    font-size: 0.85em; /* Smaller text for subtle info */
 }
 
 .text-muted {
-    color: #999; /* Dark mode muted text */
+    color: #999; /* Muted text color for additional info */
 }
 body:not(.dark) .text-muted {
     color: #6c757d;
@@ -122,26 +136,28 @@ body:not(.dark) .text-muted {
 .currency-display {
     font-size: 1.2em;
     font-weight: bold;
+    margin-bottom: 1em;
 }
 .currency-display #currency {
-    color: #ffd700; /* Gold color for currency */
+    color: #ffd700; /* Gold color for currency amount */
 }
 
 main#game-content {
     width: 100%;
-    max-width: 700px; /* Or your preferred max width */
+    max-width: 500px; /* Constrain content width for better readability on large screens */
+    margin: 0 auto; /* Center the main content block */
     display: flex;
-    flex-direction: column;
-    gap: 1.5em; /* Space between sections */
+    flex-direction: column; /* Stack sections vertically */
+    gap: 1.5em; /* Space between main sections */
 }
 
 section {
-    width: 100%;
+    width: 100%; /* Sections take full width of their parent */
 }
 
-/* --- Visually Hidden Class --- */
+/* --- Visually Hidden Class (for Accessibility) --- */
 .visually-hidden {
-    position: absolute;
+    position: absolute; /* Hides element but keeps it in document flow for screen readers */
     width: 1px;
     height: 1px;
     margin: -1px;
@@ -153,82 +169,98 @@ section {
 
 /* --- Lists (Seeds, Plots, Upgrades) --- */
 ul {
-    list-style-type: none;
-    padding-left: 0;
+    list-style-type: none; /* Remove default bullet points */
+    padding-left: 0;      /* Remove default indentation */
+    margin-top: 0;
+    margin-bottom: 0; /* Managed by gap in parent flex containers */
 }
 
+/* General styling for game-specific lists */
 .seed-options-list,
 #plot-list-area,
 #upgrade-list {
     display: flex;
-    flex-direction: column;
+    flex-direction: column; /* Default vertical stacking for plots and upgrades */
     gap: 0.75em; /* Space between list items */
+    width: 100%;
 }
 
+/* Seed Button Layout (Horizontal by default, wraps on small screens) */
 .seed-options-list {
-    flex-direction: row; /* Seeds side-by-side */
-    flex-wrap: wrap; /* Allow wrapping on small screens */
-    justify-content: center;
+    flex-direction: row; /* Arranges seed buttons horizontally */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line if space is limited */
+    justify-content: center; /* Centers the seed buttons horizontally */
     gap: 0.5em;
+    margin-bottom: 1.5em; /* Space below the seed buttons section */
+}
+.seed-options-list li {
+    margin-bottom: 0; /* Ensures no extra margin if buttons are wrapped in LIs */
 }
 
 
-/* --- Buttons --- */
-button, .btn { /* General button class, template buttons will use specific classes */
+/* --- Buttons (General Styling for consistency) --- */
+button, .btn {
     padding: 0.6em 1.2em;
     border-radius: 6px;
-    border: 1px solid transparent;
+    border: 1px solid transparent; /* Default transparent border */
     cursor: pointer;
     font-weight: bold;
     font-size: 0.95em;
     transition: background-color 0.2s, transform 0.1s, border-color 0.2s, box-shadow 0.2s;
-    background-color: #3c3c3c; /* Dark mode default button */
+    background-color: #3c3c3c; /* Dark mode default button background */
     color: #e0e0e0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for depth */
 }
 button:hover, .btn:hover {
-    background-color: #4a4a4a;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    background-color: #4a4a4a; /* Slightly lighter on hover */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Enhanced shadow on hover */
 }
 button:active, .btn:active {
-    transform: scale(0.97);
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+    transform: scale(0.97); /* Slight shrink on click */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); /* Inset shadow on click */
 }
 button:disabled, .btn:disabled {
-    background-color: #2e2e2e;
+    background-color: #2e2e2e; /* Darker background for disabled buttons */
     color: #777;
     cursor: not-allowed;
     border-color: #404040;
-    box-shadow: none;
+    box-shadow: none; /* No shadow when disabled */
 }
 
+/* Specific styles for seed selection buttons */
 .seed-btn {
-    /* Specific styles if needed, mostly inherits general button */
+    /* Inherits general button styles */
 }
-.seed-btn.selected {
-    background-color: #0d6efd; /* Bootstrap primary blue */
+.seed-btn.selected { /* Style for the actively selected seed button */
+    background-color: #0d6efd; /* A vibrant blue to indicate selection */
     border-color: #0a58ca;
     color: white;
-    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5); /* Glowing effect */
 }
 
+
 /* --- Plot Styling (from plot-template) --- */
-.plot-item {
+.plot-item { /* This is the <li> generated from #plot-template, representing each plot */
     background-color: #2a2a2a; /* Darker card background */
     border: 1px solid #444;
     border-radius: 8px;
     padding: 1em;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     display: flex;
-    flex-direction: column; /* Stack visuals and actions vertically */
+    flex-direction: column; /* Stack plot visuals and action buttons vertically */
     gap: 0.75em;
+
+    /* FIX: Set a consistent min-height for the entire plot item to prevent resizing */
+    min-height: 140px; /* Adjust this value if content in some states is taller/shorter */
 }
 
 .plot-visuals {
     display: flex;
-    flex-direction: column; /* Stack name, state, progress vertically */
+    flex-direction: column; /* Stack name, content display, progress vertically */
     gap: 0.3em;
     font-size: 1.05em;
+    /* FIX: Set a consistent min-height for the visuals area */
+    min-height: 60px; /* Enough to comfortably fit the longest text/emoji combo */
 }
 
 .plot-name-label {
@@ -236,41 +268,64 @@ button:disabled, .btn:disabled {
     color: #aaa;
 }
 
-.plot-state-indicator {
-    /* Style as needed, e.g., color based on state */
+.plot-content-display {
+    display: flex;
+    align-items: center; /* Vertically align items like emoji and name */
+    gap: 0.5em; /* Space between elements like emoji and name */
+    font-size: 1.1em;
 }
-.plot-state-indicator .plot-emoji { /* If you wrap emojis in spans */
-    margin-right: 0.3em;
+
+.plot-state-indicator {
+    /* Styles for text like "[Empty 💨]" or "[Awakened ✨]" */
+}
+.plot-emoji {
+    font-size: 1.3em; /* Make emojis slightly larger than surrounding text */
+}
+.plot-plant-name {
+    font-weight: bold;
+    color: #e0e0e0;
 }
 .plot-status-text {
     font-style: italic;
     color: #bbb;
+    font-size: 0.9em;
 }
 
+.plot-progress-area {
+    margin-top: 0.5em;
+    /* FIX: Set a consistent min-height for the progress bar area */
+    min-height: 2.5em; /* Enough to fit progress bar and timer text comfortably */
+}
 .plot-progress-bar {
-    font-family: monospace; /* For better bar character rendering */
-    color: #6c757d; /* Muted progress bar */
-    letter-spacing: -1px; /* Make bar characters closer */
-    margin-top: 0.2em;
-    margin-bottom: 0.2em;
+    font-family: monospace; /* Monospace font for better bar character rendering */
+    color: #6c757d; /* Muted progress bar color */
+    letter-spacing: -1px; /* Makes bar characters appear closer together */
+    display: block; /* Ensure it takes full width */
+    white-space: pre; /* Preserve whitespace for ASCII art progress bars */
 }
 
 .plot-timer {
     font-size: 0.9em;
     color: #888;
+    display: block; /* Ensure it's on its own line */
+    margin-top: 0.2em;
 }
 
 .plot-actions {
     display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
+    flex-wrap: wrap; /* Allows buttons to wrap to the next line if space is limited */
     gap: 0.5em;
     margin-top: 0.5em; /* Space above action buttons */
+    /* FIX: Set a consistent min-height for the actions area to prevent collapse when buttons are hidden */
+    min-height: 40px; /* Should be enough for one button's height */
+    align-items: center; /* Center buttons vertically within this space */
 }
 
+/* Specific styles for action buttons inside plots */
 .plot-action-btn {
-    flex-grow: 1; /* Allow buttons to grow to fill space if fewer */
-    min-width: 100px; /* Minimum width for better tap targets */
-    /* Specific colors for action buttons if desired */
+    flex-grow: 1; /* Allows buttons to grow to fill available space if fewer are present */
+    min-width: 120px; /* Minimum width for better tap targets and consistency */
+    /* Inherits general button styles, overrides if needed */
 }
 .nurture-btn {
     background-color: #198754; /* Green for nurture */
@@ -283,9 +338,9 @@ body:not(.dark) .nurture-btn {
 }
 
 .harvest-btn {
-    background-color: #ffc107; /* Yellow for harvest */
+    background-color: #ffc107; /* Yellow/Orange for harvest */
     border-color: #d39e00;
-    color: #212529; /* Dark text on yellow */
+    color: #212529; /* Dark text on yellow for contrast */
 }
 body:not(.dark) .harvest-btn {
     background-color: #ffca2c;
@@ -294,20 +349,22 @@ body:not(.dark) .harvest-btn {
 
 
 /* --- Upgrade Styling (from upgrade-template) --- */
-.upgrade-item {
+.upgrade-item { /* The <li> generated from #upgrade-template, representing each upgrade */
     background-color: #2a2a2a;
     border: 1px solid #444;
     border-radius: 8px;
     padding: 1em;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-between; /* Space info and button horizontally */
+    align-items: center; /* Vertically align content */
     gap: 1em;
+    /* FIX: Set a consistent min-height for upgrade items to prevent resizing */
+    min-height: 80px; /* Adjust based on your upgrade name/description length */
 }
 
 .upgrade-info {
-    flex-grow: 1;
+    flex-grow: 1; /* Allows info to take available space */
 }
 
 .upgrade-name {
@@ -330,32 +387,32 @@ body:not(.dark) .upgrade-description {
     flex-shrink: 0; /* Prevent button from shrinking too much */
 }
 .upgrade-cost {
-    color: #ffd700; /* Gold for cost */
+    color: #ffd700; /* Gold for cost text */
     font-weight: bold;
 }
 
 /* --- Feedback Area --- */
 #feedback {
-    position: fixed;
+    position: fixed; /* Fixed position relative to viewport */
     bottom: 1em;
     left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
+    transform: translateX(-50%); /* Center horizontally */
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent dark background */
     color: white;
     padding: 0.75em 1.5em;
-    border-radius: 2em;
+    border-radius: 2em; /* Pill shape */
     font-size: 0.9em;
-    z-index: 1000;
+    z-index: 1000; /* Ensure it's above other content */
     box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-    opacity: 0; /* Hidden by default, JS will show */
-    transition: opacity 0.3s;
+    opacity: 0; /* Hidden by default, JS will change opacity */
+    transition: opacity 0.3s; /* Smooth fade in/out */
     text-align: center;
 }
-#feedback:not(:empty) { /* Show when it has content */
+#feedback:not(:empty) { /* When JS adds text, make it visible */
     opacity: 1;
 }
 body:not(.dark) #feedback {
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.9); /* Lighter semi-transparent background */
     color: #333;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
@@ -366,10 +423,11 @@ body:not(.dark) #feedback {
     text-align: center;
     margin-top: 2em;
     padding-top: 1em;
-    border-top: 1px solid #333;
+    border-top: 1px solid #333; /* Separator line */
     width: 100%;
-    max-width: 700px;
+    max-width: 500px; /* Match main content width */
     color: #888;
+    font-size: 0.85em;
 }
 body:not(.dark) .game-footer {
     border-top-color: #ddd;
@@ -379,7 +437,7 @@ body:not(.dark) .game-footer {
 /* --- Responsive Adjustments --- */
 @media (max-width: 600px) {
     body {
-        padding: 0.5em;
+        padding: 0.5em; /* Less padding on very small screens */
     }
     h1 {
         font-size: 1.7em;
@@ -388,26 +446,26 @@ body:not(.dark) .game-footer {
         font-size: 1.3em;
     }
     .plot-item, .upgrade-item {
-        padding: 0.75em;
+        padding: 0.75em; /* Less padding for smaller cards */
     }
     .plot-actions {
-        flex-direction: column; /* Stack action buttons on small screens */
+        flex-direction: column; /* Stack action buttons vertically on small screens */
     }
     .plot-action-btn {
-        width: 100%; /* Make them full width when stacked */
+        width: 100%; /* Make stacked buttons full width */
     }
     .upgrade-item {
-        flex-direction: column; /* Stack upgrade info and button */
+        flex-direction: column; /* Stack upgrade info and button vertically */
         align-items: stretch; /* Make button full width */
     }
     .upgrade-purchase-btn {
-        margin-top: 0.5em;
+        margin-top: 0.5em; /* Space between info and button when stacked */
     }
     .seed-options-list {
-        /* Could also stack them if needed */
+        /* Can remain row or change to column if many seeds */
     }
     #feedback {
-        width: 90%;
+        width: 90%; /* Wider feedback on small screens */
         bottom: 0.5em;
     }
 }

@@ -13,8 +13,8 @@
             position: fixed;
             top: 1em;
             right: 1em;
-            z-index: 1001;
-            background: #222;
+            z-index: 1001; /* Ensure it's above other potential fixed elements */
+            background: #222; /* Will be overridden by .dark styles if needed */
             color: #fff;
             border: none;
             border-radius: 1em;
@@ -123,26 +123,32 @@
 
     <!-- Templates for Dynamic Content Generation by JS -->
     <template id="plot-template">
-        <li class="plot-item" data-plot-index=""> <!-- JS will set data-plot-index -->
+        <li class="plot-item" data-plot-index="">
             <div class="plot-visuals">
-                <!-- JS will populate emoji/text here, e.g., using spans for different parts -->
                 <span class="plot-name-label">Plot X:</span>
-                <span class="plot-state-indicator">[Empty 💨]</span>
-                <span class="plot-progress-bar"></span>
-                <span class="plot-timer"></span>
+                <span class="plot-content-display">
+                    <!-- This span will dynamically show plant emoji, name, state -->
+                    <span class="plot-state-indicator"></span>
+                    <span class="plot-emoji"></span>
+                    <span class="plot-plant-name"></span>
+                    <span class="plot-status-text"></span>
+                </span>
+                <span class="plot-progress-area">
+                    <span class="plot-progress-bar"></span>
+                    <span class="plot-timer"></span>
+                </span>
             </div>
             <div class="plot-actions">
-                <!-- JS will show/hide relevant action buttons here -->
-                <button class="plot-action-btn awaken-btn" style="display:none;">Awaken</button>
-                <button class="plot-action-btn plant-btn" style="display:none;">Plant Selected Seed</button>
-                <button class="plot-action-btn nurture-btn" style="display:none;">💧 Nurture!</button>
-                <button class="plot-action-btn harvest-btn" style="display:none;">Harvest</button>
+                <button class="plot-action-btn awaken-btn">Awaken</button>
+                <button class="plot-action-btn plant-btn">Plant Selected Seed</button>
+                <button class="plot-action-btn nurture-btn">💧 Nurture!</button>
+                <button class="plot-action-btn harvest-btn">Harvest</button>
             </div>
         </li>
     </template>
 
     <template id="upgrade-template">
-        <li class="upgrade-item" data-upgrade-key=""> <!-- JS will set data-upgrade-key -->
+        <li class="upgrade-item" data-upgrade-key="">
             <div class="upgrade-info">
                 <h3 class="upgrade-name">Upgrade Name (Lv X)</h3>
                 <p class="upgrade-description">Effect description here</p>
