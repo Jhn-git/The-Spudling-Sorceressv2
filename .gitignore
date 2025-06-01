@@ -1,0 +1,25 @@
+# .gitignore for The Spudling Sorceress
+# Ignore OS and editor files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# VSCode
+.vscode/
+
+# Node/npm (if ever used)
+node_modules/
+
+# Ignore build output (not used, but future-proof)
+dist/
+build/
+
+# Ignore user data
+*.bak
+*.swp
+*.swo
+
+# Ignore download artifacts
+*.zip
+*.tar.gz
