@@ -1,0 +1,413 @@
+/* style.css */
+
+/* --- Global Resets & Base Styles --- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #1e1e1e; /* Default Dark Mode Background */
+    color: #e0e0e0;           /* Default Dark Mode Text */
+    padding: 1em;
+    transition: background-color 0.3s, color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* --- Light Mode Theme --- */
+body:not(.dark) {
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+body:not(.dark) .dark-toggle {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+}
+body:not(.dark) .dark-toggle:active {
+    background-color: #e0e0e0;
+}
+
+body:not(.dark) .plot-item,
+body:not(.dark) .upgrade-item {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+body:not(.dark) button,
+body:not(.dark) .btn {
+    background-color: #e9e9e9;
+    color: #333;
+    border: 1px solid #ccc;
+}
+body:not(.dark) button:hover,
+body:not(.dark) .btn:hover {
+    background-color: #dcdcdc;
+}
+body:not(.dark) button:disabled,
+body:not(.dark) .btn:disabled {
+    background-color: #f0f0f0;
+    color: #aaa;
+    border-color: #ddd;
+}
+body:not(.dark) .seed-btn.selected {
+    background-color: #007bff;
+    border-color: #0056b3;
+    color: white;
+}
+body:not(.dark) .text-muted {
+    color: #666;
+}
+
+
+/* --- Typography --- */
+h1, h2, h3 {
+    margin-bottom: 0.75em;
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 2em; /* Adjust as needed */
+    text-align: center;
+    margin-bottom: 0.5em;
+    color: #58a6ff; /* A nice bright color for dark mode title */
+}
+body:not(.dark) h1 {
+    color: #0056b3;
+}
+
+
+h2 {
+    font-size: 1.5em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+    margin-top: 1.5em; /* Space before sections */
+}
+body:not(.dark) h2 {
+    border-bottom-color: #ccc;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+.small-text {
+    font-size: 0.85em;
+}
+
+.text-muted {
+    color: #999; /* Dark mode muted text */
+}
+body:not(.dark) .text-muted {
+    color: #6c757d;
+}
+
+
+/* --- Layout & Containers --- */
+.game-header {
+    text-align: center;
+    margin-bottom: 1.5em;
+}
+
+.currency-display {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.currency-display #currency {
+    color: #ffd700; /* Gold color for currency */
+}
+
+main#game-content {
+    width: 100%;
+    max-width: 700px; /* Or your preferred max width */
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em; /* Space between sections */
+}
+
+section {
+    width: 100%;
+}
+
+/* --- Visually Hidden Class --- */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* --- Lists (Seeds, Plots, Upgrades) --- */
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.seed-options-list,
+#plot-list-area,
+#upgrade-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em; /* Space between list items */
+}
+
+.seed-options-list {
+    flex-direction: row; /* Seeds side-by-side */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    justify-content: center;
+    gap: 0.5em;
+}
+
+
+/* --- Buttons --- */
+button, .btn { /* General button class, template buttons will use specific classes */
+    padding: 0.6em 1.2em;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.95em;
+    transition: background-color 0.2s, transform 0.1s, border-color 0.2s, box-shadow 0.2s;
+    background-color: #3c3c3c; /* Dark mode default button */
+    color: #e0e0e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+button:hover, .btn:hover {
+    background-color: #4a4a4a;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+button:active, .btn:active {
+    transform: scale(0.97);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+}
+button:disabled, .btn:disabled {
+    background-color: #2e2e2e;
+    color: #777;
+    cursor: not-allowed;
+    border-color: #404040;
+    box-shadow: none;
+}
+
+.seed-btn {
+    /* Specific styles if needed, mostly inherits general button */
+}
+.seed-btn.selected {
+    background-color: #0d6efd; /* Bootstrap primary blue */
+    border-color: #0a58ca;
+    color: white;
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
+}
+
+/* --- Plot Styling (from plot-template) --- */
+.plot-item {
+    background-color: #2a2a2a; /* Darker card background */
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column; /* Stack visuals and actions vertically */
+    gap: 0.75em;
+}
+
+.plot-visuals {
+    display: flex;
+    flex-direction: column; /* Stack name, state, progress vertically */
+    gap: 0.3em;
+    font-size: 1.05em;
+}
+
+.plot-name-label {
+    font-weight: bold;
+    color: #aaa;
+}
+
+.plot-state-indicator {
+    /* Style as needed, e.g., color based on state */
+}
+.plot-state-indicator .plot-emoji { /* If you wrap emojis in spans */
+    margin-right: 0.3em;
+}
+.plot-status-text {
+    font-style: italic;
+    color: #bbb;
+}
+
+.plot-progress-bar {
+    font-family: monospace; /* For better bar character rendering */
+    color: #6c757d; /* Muted progress bar */
+    letter-spacing: -1px; /* Make bar characters closer */
+    margin-top: 0.2em;
+    margin-bottom: 0.2em;
+}
+
+.plot-timer {
+    font-size: 0.9em;
+    color: #888;
+}
+
+.plot-actions {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: 0.5em;
+    margin-top: 0.5em; /* Space above action buttons */
+}
+
+.plot-action-btn {
+    flex-grow: 1; /* Allow buttons to grow to fill space if fewer */
+    min-width: 100px; /* Minimum width for better tap targets */
+    /* Specific colors for action buttons if desired */
+}
+.nurture-btn {
+    background-color: #198754; /* Green for nurture */
+    border-color: #146c43;
+    color: white;
+}
+body:not(.dark) .nurture-btn {
+    background-color: #28a745;
+    border-color: #1e7e34;
+}
+
+.harvest-btn {
+    background-color: #ffc107; /* Yellow for harvest */
+    border-color: #d39e00;
+    color: #212529; /* Dark text on yellow */
+}
+body:not(.dark) .harvest-btn {
+    background-color: #ffca2c;
+    border-color: #ffbb09;
+}
+
+
+/* --- Upgrade Styling (from upgrade-template) --- */
+.upgrade-item {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 1em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1em;
+}
+
+.upgrade-info {
+    flex-grow: 1;
+}
+
+.upgrade-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 0.25em;
+}
+
+.upgrade-description {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 0; /* Remove default p margin if it's the only text */
+}
+body:not(.dark) .upgrade-description {
+    color: #555;
+}
+
+.upgrade-purchase-btn {
+    white-space: nowrap; /* Prevent button text from wrapping too early */
+    flex-shrink: 0; /* Prevent button from shrinking too much */
+}
+.upgrade-cost {
+    color: #ffd700; /* Gold for cost */
+    font-weight: bold;
+}
+
+/* --- Feedback Area --- */
+#feedback {
+    position: fixed;
+    bottom: 1em;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.75em 1.5em;
+    border-radius: 2em;
+    font-size: 0.9em;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    opacity: 0; /* Hidden by default, JS will show */
+    transition: opacity 0.3s;
+    text-align: center;
+}
+#feedback:not(:empty) { /* Show when it has content */
+    opacity: 1;
+}
+body:not(.dark) #feedback {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+
+/* --- Footer --- */
+.game-footer {
+    text-align: center;
+    margin-top: 2em;
+    padding-top: 1em;
+    border-top: 1px solid #333;
+    width: 100%;
+    max-width: 700px;
+    color: #888;
+}
+body:not(.dark) .game-footer {
+    border-top-color: #ddd;
+    color: #777;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 600px) {
+    body {
+        padding: 0.5em;
+    }
+    h1 {
+        font-size: 1.7em;
+    }
+    h2 {
+        font-size: 1.3em;
+    }
+    .plot-item, .upgrade-item {
+        padding: 0.75em;
+    }
+    .plot-actions {
+        flex-direction: column; /* Stack action buttons on small screens */
+    }
+    .plot-action-btn {
+        width: 100%; /* Make them full width when stacked */
+    }
+    .upgrade-item {
+        flex-direction: column; /* Stack upgrade info and button */
+        align-items: stretch; /* Make button full width */
+    }
+    .upgrade-purchase-btn {
+        margin-top: 0.5em;
+    }
+    .seed-options-list {
+        /* Could also stack them if needed */
+    }
+    #feedback {
+        width: 90%;
+        bottom: 0.5em;
+    }
+}

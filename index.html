@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A charming retro farming game sim featuring Sarah, the Spudling Sorceress. Grow magical plants, complete quests, and upgrade your enchanting farm!">
+    <title>🥔🧙‍♀️ The Spudling Sorceress</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥔</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Dark Mode Toggle Styles - kept inline for immediate rendering and self-containment */
+        .dark-toggle {
+            position: fixed;
+            top: 1em;
+            right: 1em;
+            z-index: 1001;
+            background: #222;
+            color: #fff;
+            border: none;
+            border-radius: 1em;
+            padding: 0.5em 1em;
+            font-size: 1em;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: background 0.2s, color 0.2s, transform 0.1s;
+        }
+        .dark-toggle:hover {
+            opacity: 1;
+        }
+        .dark-toggle:active {
+            background: #444;
+            transform: scale(0.95);
+        }
+        @media (max-width: 600px) {
+            .dark-toggle { top: 0.5em; right: 0.5em; font-size: 0.95em; }
+        }
+
+        /* Visually Hidden Class for Accessibility */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+    </style>
+
+    <!-- Structured Data (JSON-LD for VideoGame) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "The Spudling Sorceress",
+      "description": "A charming retro farming game sim featuring Sarah, the Spudling Sorceress. Grow magical plants and upgrade your farm!",
+      "operatingSystem": "Web Browser",
+      "applicationCategory": "Game",
+      "genre": ["Simulation", "Farming", "Idle Game"],
+      "author": {
+        "@type": "Person",
+        "name": "[Your Name/Studio Name]"
+      },
+      "image": "[URL to a promotional image if you have one, e.g., a screenshot or logo]",
+      "url": "[URL of the game if it's hosted]"
+    }
+    </script>
+</head>
+<body>
+    <button class="dark-toggle" id="dark-toggle" title="Toggle dark mode" aria-pressed="false">🌙 Dark Mode</button>
+
+    <header class="game-header">
+        <h1>🥔🧙‍♀️ The Spudling Sorceress</h1>
+        <!-- JS Target: Currency Display -->
+        <p class="currency-display">💎: <span id="currency" aria-label="Current game currency">0</span></p>
+    </header>
+
+    <main id="game-content">
+        <div class="game-controls-panel">
+            <section id="seed-selection-area" aria-labelledby="seed-selection-title">
+                <h2 id="seed-selection-title" class="visually-hidden">Seed Selection</h2>
+                <!-- JS Target: Seed Selection Controls -->
+                <div id="seed-select-controls" role="group" aria-label="Select a seed to plant">
+                    <ul class="seed-options-list">
+                        <!-- Seed buttons will be populated here by JS, or can be hardcoded if static -->
+                        <li><button class="seed-btn" data-seed="star_spud">Plant 🥔 Star Spud</button></li>
+                        <li><button class="seed-btn" data-seed="giggleberry">Plant 🍓 Giggleberry</button></li>
+                    </ul>
+                </div>
+            </section>
+            <!-- Other global controls could go here -->
+        </div>
+
+        <section id="plot-management-area" aria-labelledby="plot-management-title">
+            <h2 id="plot-management-title" class="visually-hidden">Farming Plots</h2>
+            <!-- JS Target: Plot Area (will contain a list of plots) -->
+            <ul id="plot-list-area">
+                <!-- Plots will be rendered here as <li> items by main.js using the plot-template -->
+            </ul>
+        </section>
+
+        <section id="upgrade-station-area" aria-labelledby="upgrade-station-title">
+            <h2 id="upgrade-station-title">Upgrades 🪄</h2>
+            <!-- JS Target: Upgrade List Area -->
+            <ul id="upgrade-list">
+                <!-- Upgrades will be rendered here as <li> items by main.js using the upgrade-template -->
+            </ul>
+            <p class="text-muted small-text">
+                Upgrades can be purchased multiple times. Each level increases the effect and cost.
+            </p>
+        </section>
+    </main>
+
+    <!-- JS Target: Feedback Area -->
+    <div id="feedback" role="status" aria-live="polite">
+        <!-- Feedback messages will appear here -->
+    </div>
+
+    <footer class="game-footer">
+        <p class="small-text">© <span id="current-year"></span> [Your Name/Game Studio] - v0.3 Pre-Alpha</p>
+    </footer>
+
+    <!-- Templates for Dynamic Content Generation by JS -->
+    <template id="plot-template">
+        <li class="plot-item" data-plot-index=""> <!-- JS will set data-plot-index -->
+            <div class="plot-visuals">
+                <!-- JS will populate emoji/text here, e.g., using spans for different parts -->
+                <span class="plot-name-label">Plot X:</span>
+                <span class="plot-state-indicator">[Empty 💨]</span>
+                <span class="plot-progress-bar"></span>
+                <span class="plot-timer"></span>
+            </div>
+            <div class="plot-actions">
+                <!-- JS will show/hide relevant action buttons here -->
+                <button class="plot-action-btn awaken-btn" style="display:none;">Awaken</button>
+                <button class="plot-action-btn plant-btn" style="display:none;">Plant Selected Seed</button>
+                <button class="plot-action-btn nurture-btn" style="display:none;">💧 Nurture!</button>
+                <button class="plot-action-btn harvest-btn" style="display:none;">Harvest</button>
+            </div>
+        </li>
+    </template>
+
+    <template id="upgrade-template">
+        <li class="upgrade-item" data-upgrade-key=""> <!-- JS will set data-upgrade-key -->
+            <div class="upgrade-info">
+                <h3 class="upgrade-name">Upgrade Name (Lv X)</h3>
+                <p class="upgrade-description">Effect description here</p>
+            </div>
+            <button class="upgrade-purchase-btn" disabled>
+                Cost: <span class="upgrade-cost">Y</span>💎 [Upgrade/Max]
+            </button>
+        </li>
+    </template>
+
+    <script src="main.js"></script>
+    <script>
+        // Dark mode toggle logic
+        const darkBtn = document.getElementById('dark-toggle');
+        function setDarkMode(on) {
+            document.body.classList.toggle('dark', on);
+            localStorage.setItem('spudling_dark', on ? '1' : '0');
+            darkBtn.textContent = on ? '☀️ Light Mode' : '🌙 Dark Mode';
+            darkBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        }
+        darkBtn.onclick = () => setDarkMode(!document.body.classList.contains('dark'));
+        
+        // On load, check preference
+        let prefersDark = localStorage.getItem('spudling_dark') === '1';
+        if (localStorage.getItem('spudling_dark') === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            prefersDark = true; // Default to OS preference if no local storage setting
+        }
+        if (prefersDark) {
+            setDarkMode(true);
+        }
+
+        // Footer year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>
