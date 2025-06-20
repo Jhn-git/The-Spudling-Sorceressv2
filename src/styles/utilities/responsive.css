@@ -41,15 +41,16 @@
     
     .settings-toggle {
         top: var(--space-sm);
-        right: calc(var(--space-sm) + 120px);
+        right: var(--space-sm);
         width: 35px;
         height: 35px;
         font-size: 1em;
     }
     
     .dark-toggle {
-        top: var(--space-sm);
+        top: calc(var(--space-sm) + 45px);
         right: var(--space-sm);
-        font-size: 0.95em;
+        font-size: 0.85em;
+        padding: var(--space-xs) var(--space-sm);
     }
 }

@@ -75,7 +75,7 @@ button:disabled, .btn:disabled {
 .settings-toggle {
     position: fixed;
     top: var(--space-lg);
-    right: calc(var(--space-lg) + 160px);
+    right: calc(var(--space-lg) + 140px);
     z-index: 1001;
     background-color: #333;
     color: #fff;
