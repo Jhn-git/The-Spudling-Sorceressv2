@@ -22,8 +22,34 @@ const SEEDS = {
         growTime: 90,
         yield: 18,
         cost: 5
+    },
+    mystic_carrot: {
+        name: 'Mystic Carrot',
+        emoji: '🥕',
+        plantEmoji: '🌿',
+        readyEmoji: '🌟🥕',
+        growTime: 120, // 2 minutes
+        yield: 35,
+        cost: 15
+    },
+    golden_corn: {
+        name: 'Golden Corn',
+        emoji: '🌽',
+        plantEmoji: '🌾',
+        readyEmoji: '🌟🌽',
+        growTime: 180, // 3 minutes
+        yield: 60,
+        cost: 40
+    },
+    dragon_fruit: {
+        name: 'Dragon Fruit',
+        emoji: '🐉',
+        plantEmoji: '🌋',
+        readyEmoji: '🌟🐉',
+        growTime: 300, // 5 minutes
+        yield: 120,
+        cost: 100
     }
-    // Add more seeds here following the same structure
 };
 
 const NURTURE_EMOJI = '💧';
@@ -36,7 +62,7 @@ const GAME_EVENTS = {
         name: 'Harvest Frenzy! 🎉',
         desc: 'All harvests yield +50% 💎 for 60 seconds!',
         duration: 60, // seconds
-        applyEffect: (yield) => Math.floor(yield * 1.5)
+        applyEffect: (harvestYield) => Math.floor(harvestYield * 1.5)
     },
     super_nurture: {
         name: 'Super Soak! 💧💧',
