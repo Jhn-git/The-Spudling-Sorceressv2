@@ -1,0 +1,20 @@
+{
+  "name": "the-spudling-sorceress",
+  "version": "1.0.0",
+  "description": "Vanilla JS farming game with localStorage persistence and Web Audio API.",
+  "main": "main.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.0.0",
+    "jest": "^29.0.0",
+    "jsdom": "^24.0.0",
+    "playwright": "^1.40.0"
+  }
+}
