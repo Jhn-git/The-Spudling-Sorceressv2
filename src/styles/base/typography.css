@@ -14,9 +14,12 @@ h1, h2, h3 {
 
 h1 {
     font-size: 2em;
-    text-align: center;
     margin-bottom: var(--space-sm);
     color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25em;
 }
 
 h2 {

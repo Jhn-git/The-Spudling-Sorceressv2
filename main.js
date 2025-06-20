@@ -306,13 +306,24 @@ function renderPlots() {
         nameLabel.textContent = `Plot ${index + 1}:`; // Plot number
 
         if (plot.state === 'locked') {
-            stateIndicator.textContent = '[Locked 🔒]';
-            plotEmojiSpan.textContent = '❓';
-            plotPlantNameSpan.textContent = '';
-            plotStatusTextSpan.textContent = 'Purchase "Unlock New Plot" to unlock';
+            const contentDisplay = plotNode.querySelector('.plot-content-display');
+            
+            // Hide all the standard action buttons and clear progress/timer
+            actionButtons.forEach(btn => btn.style.display = 'none');
             progressBarSpan.textContent = '';
             timerSpan.textContent = '';
-            // No action buttons for locked plots
+
+            // Set a more descriptive aria-label for accessibility
+            plotItemLi.setAttribute('aria-label', `Plot ${index + 1}, locked. Purchase the unlock upgrade in the shop.`);
+
+            // Instead of using the small spans, take over the content display area
+            // This gives better control over layout.
+            contentDisplay.innerHTML = `
+                <div class="locked-plot-info">
+                    <span class="locked-plot-title">[Locked 🔒]</span>
+                    <p class="locked-plot-text">Purchase "Unlock New Plot" in the shop.</p>
+                </div>
+            `;
         } else if (plot.state === 'empty') {
             stateIndicator.textContent = '[Empty 💨]';
             plotNode.querySelector('.awaken-btn').style.display = 'inline-block';
