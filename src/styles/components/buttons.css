@@ -71,6 +71,48 @@ button:disabled, .btn:disabled {
     font-weight: bold;
 }
 
+/* Settings Toggle */
+.settings-toggle {
+    position: fixed;
+    top: var(--space-lg);
+    right: calc(var(--space-lg) + 160px);
+    z-index: 1001;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2em;
+    cursor: pointer;
+    opacity: 0.85;
+    transition: background var(--transition-normal), 
+                color var(--transition-normal), 
+                transform var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-toggle:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+.settings-toggle:active {
+    background-color: #555;
+    transform: scale(0.95) rotate(90deg);
+}
+
+body:not(.dark) .settings-toggle {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+body:not(.dark) .settings-toggle:active {
+    background-color: #d0d0d0;
+}
+
 /* Dark/Light Mode Toggle */
 .dark-toggle {
     position: fixed;
@@ -107,6 +149,11 @@ body:not(.dark) .dark-toggle {
 
 body:not(.dark) .dark-toggle:active {
     background-color: #e0e0e0;
+}
+
+/* Hide dark toggle when setting is disabled */
+.dark-toggle.hidden {
+    display: none;
 }
 
 /* Global Action Buttons */

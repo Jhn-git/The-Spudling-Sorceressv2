@@ -334,7 +334,18 @@ function renderPlots() {
             timerSpan.textContent = '';
         } else if (plot.state === 'awakened') {
             stateIndicator.textContent = '[Awakened ✨]';
-            plotNode.querySelector('.plant-btn').style.display = 'inline-block';
+            
+            const plantBtn = plotNode.querySelector('.plant-btn');
+            plantBtn.style.display = 'inline-block';
+            
+            // Make the Plant button dynamic and informative
+            const selectedSeedInfo = SEEDS[selectedSeed];
+            plantBtn.textContent = `Plant ${selectedSeedInfo.emoji} ${selectedSeedInfo.name}`;
+            // Add cost for extra clarity
+            if (selectedSeedInfo.cost > 0) {
+                plantBtn.textContent += ` (Cost: ${selectedSeedInfo.cost}💎)`;
+            }
+            
             plotEmojiSpan.textContent = '';
             plotPlantNameSpan.textContent = '';
             plotStatusTextSpan.textContent = '(Tap to plant selected seed)';
@@ -566,6 +577,7 @@ seedSelectControls.addEventListener('click', (e) => {
     if (seedButton && seedButton.dataset.seed) {
         selectedSeed = seedButton.dataset.seed; // Set the globally selected seed
         renderSeedSelect(); // Update UI to show selection
+        renderPlots(); // Update Plant button text to reflect new selection
         renderGlobalActions(); // Update replant button since selected seed changed
         showFeedback(`Selected: ${SEEDS[selectedSeed].name} for planting.`, null);
     }

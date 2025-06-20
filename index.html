@@ -28,6 +28,7 @@
     </script>
 </head>
 <body>
+    <button class="settings-toggle" id="settings-toggle" title="Settings" aria-pressed="false">⚙️</button>
     <button class="dark-toggle" id="dark-toggle" title="Toggle dark mode" aria-pressed="false">🌙 Dark Mode</button>
 
     <header class="game-header">
@@ -149,6 +150,30 @@
         }
         if (prefersDark) {
             setDarkMode(true);
+        }
+
+        // Settings toggle logic
+        const settingsBtn = document.getElementById('settings-toggle');
+        const darkToggle = document.getElementById('dark-toggle');
+        
+        function toggleDarkModeVisibility() {
+            const isHidden = darkToggle.classList.contains('hidden');
+            darkToggle.classList.toggle('hidden', !isHidden);
+            localStorage.setItem('spudling_show_dark_toggle', isHidden ? '1' : '0');
+            settingsBtn.setAttribute('aria-pressed', isHidden ? 'false' : 'true');
+            settingsBtn.title = isHidden ? 'Settings (Dark mode visible)' : 'Settings (Dark mode hidden)';
+        }
+        
+        settingsBtn.onclick = toggleDarkModeVisibility;
+        
+        // On load, check dark toggle visibility preference
+        const showDarkToggle = localStorage.getItem('spudling_show_dark_toggle');
+        if (showDarkToggle === '0') {
+            darkToggle.classList.add('hidden');
+            settingsBtn.setAttribute('aria-pressed', 'true');
+            settingsBtn.title = 'Settings (Dark mode hidden)';
+        } else {
+            settingsBtn.title = 'Settings (Dark mode visible)';
         }
 
         // Footer year
