@@ -74,6 +74,13 @@
         <h1>🥔🧙‍♀️ The Spudling Sorceress</h1>
         <!-- JS Target: Currency Display -->
         <p class="currency-display">💎: <span id="currency" aria-label="Current game currency">0</span></p>
+        
+        <!-- Event Banner (hidden by default) -->
+        <div id="event-banner" style="display: none; background: linear-gradient(45deg, #ff6b35, #f7931e); color: white; padding: 0.75em; border-radius: 8px; margin-top: 1em; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">
+            <h3 id="event-name" style="margin: 0 0 0.5em 0; font-size: 1.1em;"></h3>
+            <p id="event-desc" style="margin: 0 0 0.5em 0; font-size: 0.9em;"></p>
+            <p style="margin: 0; font-weight: bold;">Time Left: <span id="event-timer"></span>s</p>
+        </div>
     </header>
 
     <main id="game-content">
@@ -89,7 +96,11 @@
                     </ul>
                 </div>
             </section>
-            <!-- Other global controls could go here -->
+            <!-- Global Action Buttons -->
+            <div class="global-actions" style="text-align: center; margin-top: 1em; display: flex; gap: 0.5em; justify-content: center;">
+                <button id="harvest-all-btn" class="btn">Harvest All Ready</button>
+                <button id="replant-all-btn" class="btn">Replant All Empty</button>
+            </div>
         </div>
 
         <section id="plot-management-area" aria-labelledby="plot-management-title">

@@ -31,6 +31,21 @@ const BASE_NURTURE_TIME_REDUCTION = 5; // seconds reduced per nurture (base)
 const NURTURE_WINDOW = 4; // seconds nurture emoji is visible before disappearing if not tapped
 const NURTURE_CHANCE_PER_SECOND = 0.18; // chance per tick to show nurture opportunity
 
+const GAME_EVENTS = {
+    harvest_frenzy: {
+        name: 'Harvest Frenzy! 🎉',
+        desc: 'All harvests yield +50% 💎 for 60 seconds!',
+        duration: 60, // seconds
+        applyEffect: (yield) => Math.floor(yield * 1.5)
+    },
+    super_nurture: {
+        name: 'Super Soak! 💧💧',
+        desc: 'Nurture taps are twice as effective for 45 seconds!',
+        duration: 45,
+        applyEffect: (nurtureValue) => nurtureValue * 2
+    }
+};
+
 const UPGRADE_DEFS = {
     faster_growth: {
         name: 'Faster Growth',
@@ -46,22 +61,30 @@ const UPGRADE_DEFS = {
         cost: [40, 100, 250, 600, 1500],
         effect: [7, 9, 11, 13, 15], // seconds reduced per level
         maxLevel: 5
+    },
+    unlock_plot: {
+        name: 'Unlock New Plot',
+        descTemplate: () => `Unlocks your next farming plot!`,
+        cost: [250, 1000], // Cost for plot #2, then plot #3
+        effect: [1, 2], // Just for consistency, represents plot number unlocked
+        maxLevel: 2 // Max of 3 plots total
     }
     // Add more upgrade definitions here
 };
 
 let currency = 0;
 let plots = [
-    // state: 'empty', 'awakened', 'growing', 'ready'
+    // state: 'empty', 'awakened', 'growing', 'ready', 'locked'
     // growTimeSnapshot: Stores the calculated grow time when planted, for progress bar accuracy
     { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 },
-    { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 },
-    { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 }
+    { state: 'locked', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 },
+    { state: 'locked', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 }
 ];
-let upgrades = { faster_growth: 0, better_nurture: 0 }; // Stores current level (0 = not owned, 1 = first level, etc.)
+let upgrades = { faster_growth: 0, better_nurture: 0, unlock_plot: 0 }; // Stores current level (0 = not owned, 1 = first level, etc.)
 let selectedSeed = 'star_spud'; // The currently selected seed for planting
 let gameTickInterval = null; // Holds the interval ID for the game tick
 let offlineSummary = ''; // Message to display upon returning to the game
+let activeEvent = null; // { key: 'harvest_frenzy', timeLeft: 60 } - Not saved, ends on reload
 
 // --- DOM Elements ---
 const currencyEl = document.getElementById('currency');
@@ -69,6 +92,8 @@ const plotListArea = document.getElementById('plot-list-area'); // The <ul> wher
 const feedbackEl = document.getElementById('feedback');
 const seedSelectControls = document.getElementById('seed-select-controls'); // The div containing seed buttons
 const upgradeListUl = document.getElementById('upgrade-list'); // The <ul> where upgrades are rendered
+const harvestAllBtn = document.getElementById('harvest-all-btn');
+const replantAllBtn = document.getElementById('replant-all-btn');
 
 const plotTemplate = document.getElementById('plot-template').content; // Access the content of the template
 const upgradeTemplate = document.getElementById('upgrade-template').content;
@@ -94,6 +119,33 @@ function loadGame() {
     if (savedPlots) plots = JSON.parse(savedPlots);
     const savedUpgrades = localStorage.getItem(UPGRADE_KEY);
     if (savedUpgrades) upgrades = JSON.parse(savedUpgrades);
+
+    // Migration code for old saves - add missing upgrade properties
+    if (!upgrades.hasOwnProperty('unlock_plot')) {
+        upgrades.unlock_plot = 0; // Default for new upgrade
+    }
+    
+    // Migration code for plots - ensure all plots have required properties
+    plots.forEach((plot, index) => {
+        if (!plot.hasOwnProperty('growTimeSnapshot')) {
+            plot.growTimeSnapshot = 0;
+        }
+        // If the plot state is undefined or invalid, reset to a safe state
+        const validStates = ['empty', 'awakened', 'growing', 'ready', 'locked'];
+        if (!validStates.includes(plot.state)) {
+            plot.state = 'empty';
+            plot.seed = null;
+            plot.plantedAt = null;
+            plot.timeLeft = 0;
+            plot.nurtureActive = false;
+            plot.growTimeSnapshot = 0;
+        }
+    });
+
+    // Ensure we have the expected number of plots
+    while (plots.length < 3) {
+        plots.push({ state: 'locked', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 });
+    }
 
     // Calculate offline progress
     const lastTime = parseInt(localStorage.getItem(LAST_TIME_KEY) || Date.now());
@@ -155,10 +207,16 @@ function getCurrentGrowTime(seedKey) {
  */
 function getCurrentNurtureTimeReduction() {
     const nurtureLevel = upgrades.better_nurture;
+    let baseValue = BASE_NURTURE_TIME_REDUCTION; // Default if no upgrade
     if (nurtureLevel > 0 && UPGRADE_DEFS.better_nurture.effect[nurtureLevel - 1]) {
-        return UPGRADE_DEFS.better_nurture.effect[nurtureLevel - 1];
+        baseValue = UPGRADE_DEFS.better_nurture.effect[nurtureLevel - 1];
     }
-    return BASE_NURTURE_TIME_REDUCTION; // Default if no upgrade
+    
+    // Apply event effects if active
+    if (activeEvent && activeEvent.key === 'super_nurture') {
+        return GAME_EVENTS.super_nurture.applyEffect(baseValue);
+    }
+    return baseValue;
 }
 
 /**
@@ -247,7 +305,15 @@ function renderPlots() {
         // Update plot content based on its state
         nameLabel.textContent = `Plot ${index + 1}:`; // Plot number
 
-        if (plot.state === 'empty') {
+        if (plot.state === 'locked') {
+            stateIndicator.textContent = '[Locked 🔒]';
+            plotEmojiSpan.textContent = '❓';
+            plotPlantNameSpan.textContent = '';
+            plotStatusTextSpan.textContent = 'Purchase "Unlock New Plot" to unlock';
+            progressBarSpan.textContent = '';
+            timerSpan.textContent = '';
+            // No action buttons for locked plots
+        } else if (plot.state === 'empty') {
             stateIndicator.textContent = '[Empty 💨]';
             plotNode.querySelector('.awaken-btn').style.display = 'inline-block';
             plotEmojiSpan.textContent = ''; // Clear plant emoji
@@ -322,6 +388,13 @@ function renderUpgrades() {
         if (currentLevel < def.maxLevel) {
             const nextLevelCost = def.cost[currentLevel]; // Cost for the NEXT level
             let nextLevelEffectValue;
+            let upgradeDisabled = currency < nextLevelCost;
+
+            // Special handling for unlock_plot - disable if all plots are already unlocked
+            if (key === 'unlock_plot') {
+                const lockedPlotsCount = plots.filter(p => p.state === 'locked').length;
+                upgradeDisabled = upgradeDisabled || lockedPlotsCount === 0;
+            }
 
             // Determine what the 'next' effect value is for the description
             if (key === 'faster_growth') {
@@ -332,7 +405,7 @@ function renderUpgrades() {
             descEl.textContent = `Next: ${def.descTemplate(nextLevelEffectValue)}`; // Use the template function
             
             costSpan.textContent = nextLevelCost;
-            purchaseBtn.disabled = currency < nextLevelCost;
+            purchaseBtn.disabled = upgradeDisabled;
             purchaseBtn.innerHTML = `Cost: <span class="upgrade-cost">${nextLevelCost}</span>💎 [Upgrade]`;
         } else {
             // Max level reached
@@ -352,7 +425,9 @@ function renderUpgrades() {
 function renderCurrency() {
     currencyEl.textContent = currency;
     // Call renderUpgrades here to ensure upgrade button states (disabled/enabled) are updated
-    renderUpgrades(); 
+    renderUpgrades();
+    // Update global action buttons as well since currency affects replant capability
+    renderGlobalActions();
 }
 
 /**
@@ -375,6 +450,21 @@ function renderSeedSelect() {
     });
 }
 
+/**
+ * Renders/updates the global action buttons (Harvest All, Replant All).
+ */
+function renderGlobalActions() {
+    // Check if there are any ready plots for harvesting
+    const readyPlots = plots.filter(plot => plot.state === 'ready');
+    harvestAllBtn.disabled = readyPlots.length === 0;
+    
+    // Check if there are any empty plots and if we can afford to plant
+    const emptyPlots = plots.filter(plot => plot.state === 'empty');
+    const seedInfo = SEEDS[selectedSeed];
+    const canAffordToPlant = currency >= seedInfo.cost;
+    replantAllBtn.disabled = emptyPlots.length === 0 || !canAffordToPlant;
+}
+
 // --- Game Logic / Tick ---
 
 /**
@@ -382,6 +472,34 @@ function renderSeedSelect() {
  */
 function gameTick() {
     let needsRender = false; // Flag to optimize UI re-renders
+
+    // Handle active events
+    if (activeEvent) {
+        activeEvent.timeLeft--;
+        document.getElementById('event-timer').textContent = activeEvent.timeLeft;
+        if (activeEvent.timeLeft <= 0) {
+            activeEvent = null;
+            document.getElementById('event-banner').style.display = 'none';
+            showFeedback('The event has ended!', null);
+        }
+    } else {
+        // Start a new event randomly (1% chance each second)
+        if (Math.random() < 0.01) {
+            const eventKeys = Object.keys(GAME_EVENTS);
+            const randomEventKey = eventKeys[Math.floor(Math.random() * eventKeys.length)];
+            activeEvent = {
+                key: randomEventKey,
+                timeLeft: GAME_EVENTS[randomEventKey].duration
+            };
+            // Show banner
+            const banner = document.getElementById('event-banner');
+            document.getElementById('event-name').textContent = GAME_EVENTS[randomEventKey].name;
+            document.getElementById('event-desc').textContent = GAME_EVENTS[randomEventKey].desc;
+            document.getElementById('event-timer').textContent = activeEvent.timeLeft;
+            banner.style.display = 'block';
+            showFeedback('A special event has started!', 'upgrade');
+        }
+    }
 
     plots.forEach((plot, index) => {
         if (plot.state === 'growing') {
@@ -413,6 +531,7 @@ function gameTick() {
 
     if (needsRender) {
         renderPlots(); // Update plot timers and progress bars
+        renderGlobalActions(); // Update global action button states
     }
     renderCurrency(); // Update currency and re-render upgrades
     saveGame(); // Save game state every tick
@@ -436,6 +555,7 @@ seedSelectControls.addEventListener('click', (e) => {
     if (seedButton && seedButton.dataset.seed) {
         selectedSeed = seedButton.dataset.seed; // Set the globally selected seed
         renderSeedSelect(); // Update UI to show selection
+        renderGlobalActions(); // Update replant button since selected seed changed
         showFeedback(`Selected: ${SEEDS[selectedSeed].name} for planting.`, null);
     }
 });
@@ -520,7 +640,19 @@ upgradeListUl.addEventListener('click', (e) => {
         if (currency >= cost) {
             currency -= cost;
             upgrades[upgradeKey] = currentLevel + 1; // Increment level
-            showFeedback(`Upgraded: ${def.name} to Lv ${upgrades[upgradeKey]}!`, 'upgrade');
+            
+            // Special handling for unlock_plot upgrade
+            if (upgradeKey === 'unlock_plot') {
+                // Find the first locked plot and unlock it
+                const firstLockedPlotIndex = plots.findIndex(p => p.state === 'locked');
+                if (firstLockedPlotIndex !== -1) {
+                    plots[firstLockedPlotIndex].state = 'empty';
+                }
+                showFeedback(`New plot unlocked!`, 'upgrade');
+            } else {
+                showFeedback(`Upgraded: ${def.name} to Lv ${upgrades[upgradeKey]}!`, 'upgrade');
+            }
+            
             saveGame();
             renderUpgrades(); // Re-render upgrades to show new level and next cost
             renderCurrency(); // Update currency display (this will also call renderUpgrades)
@@ -528,6 +660,67 @@ upgradeListUl.addEventListener('click', (e) => {
         } else {
             showFeedback('Not enough 💎!', 'error'); // Should be prevented by disabled button
         }
+    }
+});
+
+/**
+ * Handles "Harvest All" button clicks.
+ */
+harvestAllBtn.addEventListener('click', () => {
+    let harvestedCount = 0;
+    let totalYield = 0;
+
+    plots.forEach((plot, index) => {
+        if (plot.state === 'ready') {
+            let harvestedYield = SEEDS[plot.seed].yield;
+            // Apply event effects if active
+            if (activeEvent && activeEvent.key === 'harvest_frenzy') {
+                harvestedYield = GAME_EVENTS.harvest_frenzy.applyEffect(harvestedYield);
+            }
+            totalYield += harvestedYield;
+            harvestedCount++;
+            // Reset plot to empty state
+            plots[index] = { state: 'empty', seed: null, plantedAt: null, timeLeft: 0, nurtureActive: false, growTimeSnapshot: 0 };
+        }
+    });
+
+    if (harvestedCount > 0) {
+        currency += totalYield;
+        showFeedback(`Harvested ${harvestedCount} plots for +${totalYield}💎!`, 'harvest');
+        saveGame();
+        renderPlots();
+        renderCurrency();
+    }
+});
+
+/**
+ * Handles "Replant All" button clicks.
+ */
+replantAllBtn.addEventListener('click', () => {
+    let plantedCount = 0;
+    const seedInfo = SEEDS[selectedSeed];
+
+    plots.forEach((plot, index) => {
+        // Plant in empty plots we can afford
+        if (plot.state === 'empty' && currency >= seedInfo.cost) {
+            currency -= seedInfo.cost;
+            plots[index] = {
+                state: 'growing',
+                seed: selectedSeed,
+                plantedAt: Date.now(),
+                growTimeSnapshot: getCurrentGrowTime(selectedSeed),
+                timeLeft: getCurrentGrowTime(selectedSeed),
+                nurtureActive: false
+            };
+            plantedCount++;
+        }
+    });
+
+    if (plantedCount > 0) {
+        showFeedback(`Planted ${seedInfo.name} on ${plantedCount} plots!`, 'plant');
+        saveGame();
+        renderPlots();
+        renderCurrency();
     }
 });
 
@@ -542,6 +735,7 @@ function initializeGame() {
     renderCurrency(); // Renders currency and triggers upgrade render
     renderSeedSelect();
     renderPlots(); // Render plots based on loaded state
+    renderGlobalActions(); // Initialize global action button states
     startGameTimers(); // Start the game loop
 
     // Show offline summary if any earnings occurred
