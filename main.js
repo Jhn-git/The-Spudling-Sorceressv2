@@ -127,6 +127,129 @@ const upgradeTemplate = document.getElementById('upgrade-template').content;
 // --- Utility Functions ---
 
 /**
+ * Formats seconds into a human-readable time string.
+ * @param {number} seconds - The number of seconds to format.
+ * @returns {string} Formatted time string.
+ */
+function formatTime(seconds) {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+    return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
+}
+
+/**
+ * Creates a detailed offline summary message.
+ * @param {Object} details - The offline progress details.
+ * @returns {string} Formatted offline summary.
+ */
+function createOfflineSummary(details) {
+    let summary = `🌙 Welcome back! You were away for ${details.timeAwayFormatted}.\n\n`;
+    
+    if (details.totalGainedCurrency > 0) {
+        summary += `💎 Offline Earnings: ${details.totalGainedCurrency} gems\n`;
+        
+        // Show breakdown by plant type
+        const plantTypes = Object.keys(details.harvestedPlants);
+        if (plantTypes.length > 0) {
+            summary += `\n📊 Harvest Breakdown:\n`;
+            plantTypes.forEach(seedKey => {
+                const plant = details.harvestedPlants[seedKey];
+                summary += `• ${plant.emoji} ${plant.name}: ${plant.count}x (+${plant.yield}💎)\n`;
+            });
+        }
+        
+        if (details.totalNurtureTimeSaved > 0) {
+            summary += `\n💧 Nurture bonus saved ~${details.totalNurtureTimeSaved}s of growth time!`;
+        }
+        
+        summary += `\n\n🎁 Tap "Claim Rewards" to collect your earnings!`;
+    } else {
+        summary += `No crops finished while you were away.`;
+    }
+    
+    return summary;
+}
+
+/**
+ * Shows the offline progress modal with detailed information.
+ * @param {string} summary - The offline summary text.
+ */
+function showOfflineModal(summary) {
+    // Create modal elements dynamically
+    const modalOverlay = document.createElement('div');
+    modalOverlay.id = 'offline-modal-overlay';
+    modalOverlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); z-index: 1000; display: flex;
+        align-items: center; justify-content: center; padding: 1rem;
+    `;
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        background: var(--bg-color, #f5f5f5); border-radius: 12px; padding: 1.5rem;
+        max-width: 400px; width: 100%; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: 2px solid var(--accent-color, #4a90e2); color: var(--text-color, #333);
+        text-align: center;
+    `;
+    
+    modal.innerHTML = `
+        <h2 style="margin: 0 0 1rem 0; color: var(--accent-color, #4a90e2);">🌙 Offline Progress</h2>
+        <div style="white-space: pre-line; margin: 0 0 1.5rem 0; text-align: left; line-height: 1.4;">${summary}</div>
+        <div style="display: flex; gap: 0.5rem; justify-content: center;">
+            ${window.offlineRewards && window.offlineRewards.totalGainedCurrency > 0 ? 
+                '<button id="claim-offline-btn" style="background: #28a745; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer; font-weight: bold;">🎁 Claim Rewards</button>' : ''
+            }
+            <button id="close-offline-modal" style="background: var(--accent-color, #4a90e2); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; cursor: pointer;">Close</button>
+        </div>
+    `;
+    
+    modalOverlay.appendChild(modal);
+    document.body.appendChild(modalOverlay);
+    
+    // Add event listeners
+    const claimBtn = modal.querySelector('#claim-offline-btn');
+    const closeBtn = modal.querySelector('#close-offline-modal');
+    
+    if (claimBtn) {
+        claimBtn.addEventListener('click', () => {
+            claimOfflineRewards();
+            modalOverlay.remove();
+        });
+    }
+    
+    closeBtn.addEventListener('click', () => {
+        modalOverlay.remove();
+    });
+    
+    // Close on overlay click
+    modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) {
+            modalOverlay.remove();
+        }
+    });
+}
+
+/**
+ * Claims offline rewards and adds them to player currency.
+ */
+function claimOfflineRewards() {
+    if (window.offlineRewards && window.offlineRewards.totalGainedCurrency > 0) {
+        currency += window.offlineRewards.totalGainedCurrency;
+        
+        const rewardAmount = window.offlineRewards.totalGainedCurrency;
+        showFeedback(`🎉 Claimed ${rewardAmount}💎 offline rewards!`, 'harvest');
+        
+        // Clear the offline rewards
+        window.offlineRewards = null;
+        offlineSummary = '';
+        
+        // Update UI
+        renderCurrency();
+    }
+}
+
+/**
  * Saves the current game state to Local Storage.
  */
 function saveGame() {
@@ -180,6 +303,8 @@ function loadGame() {
 
     let totalGainedCurrency = 0;
     let totalNurtureTimeSaved = 0;
+    let harvestedPlants = {}; // Track what was harvested by type
+    let readyPlants = {}; // Track what's ready to harvest by type
 
     plots.forEach((plot) => {
         if (plot.state === 'growing' && plot.plantedAt) {
@@ -193,7 +318,22 @@ function loadGame() {
             let timeToAdvance = elapsedSeconds + nurtureTimeReductionForPlot;
             
             if (plot.timeLeft <= timeToAdvance) {
-                totalGainedCurrency += SEEDS[plot.seed].yield;
+                const seedInfo = SEEDS[plot.seed];
+                totalGainedCurrency += seedInfo.yield;
+                
+                // Track harvested plants for detailed summary
+                if (harvestedPlants[plot.seed]) {
+                    harvestedPlants[plot.seed].count++;
+                    harvestedPlants[plot.seed].yield += seedInfo.yield;
+                } else {
+                    harvestedPlants[plot.seed] = {
+                        name: seedInfo.name,
+                        emoji: seedInfo.emoji,
+                        count: 1,
+                        yield: seedInfo.yield
+                    };
+                }
+                
                 plot.state = 'ready'; // Crop is ready
                 plot.timeLeft = 0;
                 plot.nurtureActive = false; // Clear any pending nurture
@@ -203,12 +343,21 @@ function loadGame() {
         }
     });
 
-    if (totalGainedCurrency > 0) {
-        currency += totalGainedCurrency;
-        offlineSummary = `Welcome back! While you were away, ${totalGainedCurrency}💎 was earned.`;
-        if (totalNurtureTimeSaved > 0) {
-            offlineSummary += ` (Nurture bonus saved ~${totalNurtureTimeSaved}s of growth time!)`;
-        }
+    // Create detailed offline summary
+    if (totalGainedCurrency > 0 || Object.keys(harvestedPlants).length > 0) {
+        let offlineDetails = {
+            totalGainedCurrency,
+            totalNurtureTimeSaved,
+            harvestedPlants,
+            elapsedSeconds,
+            timeAwayFormatted: formatTime(elapsedSeconds)
+        };
+        
+        // Store offline details globally for the claim button
+        window.offlineRewards = offlineDetails;
+        
+        // Don't add currency automatically - let player claim it
+        offlineSummary = createOfflineSummary(offlineDetails);
     }
 }
 
@@ -789,8 +938,8 @@ function initializeGame() {
 
     // Show offline summary if any earnings occurred
     if (offlineSummary) {
-        showFeedback(offlineSummary, null); // No sound for offline summary initially
-        offlineSummary = ''; // Clear after showing
+        // Show detailed offline summary in a modal-like display
+        showOfflineModal(offlineSummary);
     }
     console.log("Game Initialized: The Spudling Sorceress");
 }
