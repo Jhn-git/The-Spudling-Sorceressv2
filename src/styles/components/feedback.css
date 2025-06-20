@@ -1,0 +1,28 @@
+/* Feedback Messages */
+
+#feedback {
+    position: fixed;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: var(--space-md) var(--space-xxl);
+    border-radius: var(--border-radius-pill);
+    font-size: var(--font-size-small);
+    z-index: var(--z-feedback);
+    box-shadow: var(--shadow-heavy);
+    opacity: 0;
+    transition: opacity var(--transition-slow);
+    text-align: center;
+}
+
+#feedback:not(:empty) {
+    opacity: 1;
+}
+
+body:not(.dark) #feedback {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-heavy);
+}

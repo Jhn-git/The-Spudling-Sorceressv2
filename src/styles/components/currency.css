@@ -1,0 +1,11 @@
+/* Currency Display */
+
+.currency-display {
+    font-size: var(--font-size-large);
+    font-weight: bold;
+    margin-bottom: var(--space-lg);
+}
+
+.currency-display #currency {
+    color: var(--color-currency);
+}

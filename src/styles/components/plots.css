@@ -1,0 +1,85 @@
+/* Plot Components */
+
+#plot-list-area {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    width: 100%;
+}
+
+.plot-item {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-large);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-medium);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-md);
+    min-height: var(--min-height-plot);
+}
+
+.plot-visuals {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    font-size: 1.05em;
+    min-height: var(--min-height-plot-visual);
+}
+
+.plot-name-label {
+    font-weight: bold;
+    color: var(--text-plot-name);
+}
+
+.plot-content-display {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1.1em;
+}
+
+.plot-emoji {
+    font-size: 1.3em;
+}
+
+.plot-plant-name {
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.plot-status-text {
+    font-style: italic;
+    color: var(--text-secondary);
+    font-size: var(--font-size-small);
+}
+
+.plot-progress-area {
+    margin-top: var(--space-sm);
+    min-height: var(--min-height-plot-progress);
+}
+
+.plot-progress-bar {
+    font-family: monospace;
+    color: var(--text-progress);
+    letter-spacing: -1px;
+    display: block;
+    white-space: pre;
+}
+
+.plot-timer {
+    font-size: var(--font-size-small);
+    color: var(--text-timer);
+    display: block;
+    margin-top: 0.2em;
+}
+
+.plot-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    min-height: var(--min-height-plot-actions);
+    align-items: center;
+}

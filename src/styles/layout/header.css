@@ -1,0 +1,10 @@
+/* Header Layout */
+
+.game-header {
+    text-align: center;
+    margin-bottom: var(--space-xxl);
+}
+
+.global-actions {
+    margin-bottom: var(--space-xxl);
+}

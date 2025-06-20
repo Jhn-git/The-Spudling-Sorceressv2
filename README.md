@@ -31,33 +31,79 @@ A charming browser-based incremental farming game. Plant, nurture, and harvest m
 
 ## Project Structure
 
+### Core Files
 - `index.html` — Main HTML file, includes templates and accessibility features.
-- `main.js` — Game logic, state management, rendering, and event handling.
 - `style.css` — All game styles, including dark/light mode and responsive design.
-- `tasks.md` — Project TODOs, feature ideas, and improvement notes.
-- `vision.md` — Phased development plan, design philosophy, and long-term goals.
+- `CLAUDE.md` — Development guidance for Claude Code AI assistance.
+
+### Source Code (src/)
+The game logic has been refactored into a modular ES6 structure:
+
+#### Core Systems
+- `src/main.js` — Main initialization and coordination
+- `src/core/gameState.js` — Game state management and save/load functionality
+- `src/core/gameLogic.js` — Core game calculations (grow times, nurture effects)
+
+#### Data & Configuration
+- `src/data/gameData.js` — All game constants, seeds, events, and upgrade definitions
+
+#### Systems
+- `src/systems/audioSystem.js` — Sound effect generation using Web Audio API
+- `src/systems/eventSystem.js` — Special game events handling
+- `src/systems/gameLoop.js` — Main game tick and timer management
+
+#### User Interface
+- `src/ui/renderer.js` — All UI rendering functions (plots, upgrades, currency)
+- `src/ui/eventHandlers.js` — DOM event handling and user interactions
+- `src/ui/feedback.js` — User feedback and notification system
+
+### Documentation
+- `archive/tasks.md` — Project TODOs and improvement notes
+- `vision.md` — Phased development plan and design philosophy
 
 ---
 
 ## Getting Started
 
+### For Players
 1. Download or clone this repository.
 2. Open `index.html` in your browser (no server or build step required).
 3. Play instantly! Your progress is saved automatically.
+
+### For Development
+1. Clone the repository
+2. Start a local HTTP server (required for ES6 modules):
+   ```bash
+   python3 -m http.server 8000
+   # or
+   npx serve .
+   ```
+3. Open `http://localhost:8000` in your browser
+4. Edit the modular source files in the `src/` directory
 
 ---
 
 ## Development Notes
 
-- All code is client-side and requires only a modern browser.
-- Edit `main.js` and `style.css` to add features or tweak the UI.
-- Use `tasks.md` to track bugs, polish, and new ideas.
-- See `vision.md` for the full roadmap and design intent.
+### Architecture
+- **Modular ES6 Design:** All code is organized into logical modules with clear separation of concerns
+- **No Build Process:** Uses native ES6 modules, runs directly in modern browsers
+- **Client-Side Only:** No server requirements, all game logic runs in the browser
+- **Modern JavaScript:** Uses contemporary patterns like destructuring, arrow functions, and modules
+
+### Development Workflow
+- **Main Logic:** Edit files in `src/core/` for game mechanics
+- **UI Changes:** Modify `src/ui/` files for interface updates  
+- **New Content:** Add seeds/upgrades in `src/data/gameData.js`
+- **Styling:** Update `style.css` for visual changes
+- **AI Assistance:** Reference `CLAUDE.md` for development guidance
 
 ### Customization & Expansion
-- Add new seeds or upgrades by editing the `SEEDS` and `UPGRADE_DEFS` objects in `main.js`.
-- Adjust plot count, growth times, or costs to rebalance the game.
-- The UI is designed for easy emoji/text expansion—no graphics required!
+- **New Seeds:** Add entries to the `SEEDS` object in `src/data/gameData.js`
+- **New Upgrades:** Extend `UPGRADE_DEFS` in the same file
+- **Game Balance:** Adjust costs, timers, and yields in the data file
+- **New Features:** Add modules to appropriate `src/` subdirectories
+- **UI Extensions:** The emoji/text design scales easily without graphics
 
 ---
 

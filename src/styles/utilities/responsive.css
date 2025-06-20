@@ -1,0 +1,47 @@
+/* Responsive Utilities */
+
+@media (max-width: 600px) {
+    body {
+        padding: var(--space-sm);
+    }
+    
+    h1 {
+        font-size: 1.7em;
+    }
+    
+    h2 {
+        font-size: 1.3em;
+    }
+    
+    .plot-item, .upgrade-item {
+        padding: var(--space-md);
+    }
+    
+    .plot-actions {
+        flex-direction: column;
+    }
+    
+    .plot-action-btn {
+        width: 100%;
+    }
+    
+    .upgrade-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .upgrade-purchase-btn {
+        margin-top: var(--space-sm);
+    }
+    
+    #feedback {
+        width: 90%;
+        bottom: var(--space-sm);
+    }
+    
+    .dark-toggle {
+        top: var(--space-sm);
+        right: var(--space-sm);
+        font-size: 0.95em;
+    }
+}

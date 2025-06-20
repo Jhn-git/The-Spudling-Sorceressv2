@@ -6,47 +6,7 @@
     <meta name="description" content="A charming retro farming game sim featuring Sarah, the Spudling Sorceress. Grow magical plants, complete quests, and upgrade your enchanting farm!">
     <title>🥔🧙‍♀️ The Spudling Sorceress</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥔</text></svg>">
-    <link rel="stylesheet" href="style.css">
-    <style>
-        /* Dark Mode Toggle Styles - kept inline for immediate rendering and self-containment */
-        .dark-toggle {
-            position: fixed;
-            top: 1em;
-            right: 1em;
-            z-index: 1001; /* Ensure it's above other potential fixed elements */
-            background: #222; /* Will be overridden by .dark styles if needed */
-            color: #fff;
-            border: none;
-            border-radius: 1em;
-            padding: 0.5em 1em;
-            font-size: 1em;
-            cursor: pointer;
-            opacity: 0.85;
-            transition: background 0.2s, color 0.2s, transform 0.1s;
-        }
-        .dark-toggle:hover {
-            opacity: 1;
-        }
-        .dark-toggle:active {
-            background: #444;
-            transform: scale(0.95);
-        }
-        @media (max-width: 600px) {
-            .dark-toggle { top: 0.5em; right: 0.5em; font-size: 0.95em; }
-        }
-
-        /* Visually Hidden Class for Accessibility */
-        .visually-hidden {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            margin: -1px;
-            padding: 0;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="src/styles/main.css">
 
     <!-- Structured Data (JSON-LD for VideoGame) -->
     <script type="application/ld+json">

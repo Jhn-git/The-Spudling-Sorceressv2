@@ -1,0 +1,12 @@
+/* Footer Layout */
+
+.game-footer {
+    text-align: center;
+    margin-top: var(--space-xxxl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-primary);
+    width: 100%;
+    max-width: var(--max-width);
+    color: var(--text-timer);
+    font-size: var(--font-size-tiny);
+}
