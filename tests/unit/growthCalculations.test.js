@@ -18,6 +18,6 @@ describe('Growth Time Calculations', () => {
   test('should calculate nurture time reduction correctly', () => {
     upgrades.better_nurture = 2;
     const result = getCurrentNurtureTimeReduction();
-    expect(result).toBe(9); // Level 2 effect
+    expect(result).toBe(8); // Level 2 effect (effect[1] = 8)
   });
 });
