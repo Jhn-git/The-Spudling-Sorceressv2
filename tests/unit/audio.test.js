@@ -1,3 +1,5 @@
+import { playSound } from '../../src/systems/audioSystem.js';
+
 describe('Audio System', () => {
   beforeEach(() => {
     // Mock Web Audio API

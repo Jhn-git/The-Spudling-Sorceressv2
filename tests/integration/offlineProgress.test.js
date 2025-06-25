@@ -1,7 +1,9 @@
+import { gameState, loadGame } from '../../src/core/gameState.js';
+
 describe('Offline Progress Integration', () => {
   test('should calculate offline progress correctly', () => {
     // Set up growing plot
-    plots[0] = {
+    gameState.plots[0] = {
       state: 'growing',
       seed: 'star_spud',
       plantedAt: Date.now() - 120000, // 2 minutes ago
@@ -15,7 +17,7 @@ describe('Offline Progress Integration', () => {
     
     loadGame();
     
-    expect(plots[0].state).toBe('ready');
+    expect(gameState.plots[0].state).toBe('ready');
     expect(window.offlineRewards).toBeDefined();
     expect(window.offlineRewards.totalGainedCurrency).toBe(10);
   });

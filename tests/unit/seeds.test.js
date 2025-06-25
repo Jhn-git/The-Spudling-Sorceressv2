@@ -1,3 +1,5 @@
+import { SEEDS } from '../../src/data/gameData.js';
+
 describe('SEEDS Configuration', () => {
   test('should have valid seed properties', () => {
     Object.keys(SEEDS).forEach(seedKey => {

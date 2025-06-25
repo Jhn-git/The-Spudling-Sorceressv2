@@ -1,3 +1,5 @@
+import { GAME_EVENTS } from '../../src/data/gameData.js';
+
 describe('Game Events System', () => {
   test('should have valid event definitions', () => {
     Object.keys(GAME_EVENTS).forEach(key => {

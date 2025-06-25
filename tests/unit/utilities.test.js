@@ -1,3 +1,5 @@
+import { formatTime, createOfflineSummary } from '../../src/ui/utils.js';
+
 describe('Utility Functions', () => {
   test('formatTime should handle different time ranges', () => {
     expect(formatTime(30)).toBe('30s');

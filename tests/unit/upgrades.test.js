@@ -1,3 +1,5 @@
+import { UPGRADE_DEFS } from '../../src/data/gameData.js';
+
 describe('Upgrade System', () => {
   test('should have valid upgrade definitions', () => {
     Object.keys(UPGRADE_DEFS).forEach(key => {
