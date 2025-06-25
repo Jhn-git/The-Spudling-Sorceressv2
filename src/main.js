@@ -1,21 +1,19 @@
-import { loadGame, gameState } from './core/gameState.js';
-import { renderCurrency, renderSeedSelect, renderPlots, renderGlobalActions } from './ui/renderer.js';
-import { initEventHandlers } from './ui/eventHandlers.js';
+import { loadGame } from './core/gameState.js';
+import { renderCurrency, renderSeedSelect, renderPlots, renderGlobalActions, showOfflineModal } from './ui/renderer.js';
 import { startGameTimers } from './systems/gameLoop.js';
-import { showFeedback } from './ui/feedback.js';
+import { initEventHandlers } from './ui/eventHandlers.js';
 
 function initializeGame() {
-    loadGame();
+    const offlineSummary = loadGame();
     renderCurrency();
     renderSeedSelect();
     renderPlots();
     renderGlobalActions();
-    startGameTimers();
     initEventHandlers();
+    startGameTimers();
 
-    if (gameState.offlineSummary) {
-        showFeedback(gameState.offlineSummary, null);
-        gameState.offlineSummary = '';
+    if (offlineSummary) {
+        showOfflineModal(offlineSummary);
     }
     console.log("Game Initialized: The Spudling Sorceress");
 }

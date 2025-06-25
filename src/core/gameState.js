@@ -91,4 +91,13 @@ export function calculateOfflineProgress() {
             gameState.offlineSummary += ` (Nurture bonus saved ~${totalNurtureTimeSaved}s of growth time!)`;
         }
     }
+
+    const offlineRewards = {
+        totalGainedCurrency,
+        report: gameState.offlineSummary
+    };
+
+    if (typeof window !== 'undefined') {
+        window.offlineRewards = offlineRewards;
+    }
 }
