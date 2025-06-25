@@ -1,97 +1,12 @@
-require('@testing-library/jest-dom');
+import '@testing-library/jest-dom';
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn().mockReturnValue(null),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.localStorage = localStorageMock;
-
-// Mock basic DOM elements needed for tests
-global.document.body.innerHTML = `
-  <div id="currency">0</div>
-  <ul id="plot-list-area">
-    <li class="plot-card">
-      <button class="awaken-btn">Awaken Plot</button>
-      <button class="plant-btn">Plant</button>
-      <button class="nurture-btn">Nurture</button>
-      <button class="harvest-btn">Harvest</button>
-    </li>
-  </ul>
-  <div id="feedback"></div>
-  <div id="seed-select-controls"></div>
-  <ul id="upgrade-list"></ul>
-  <button id="harvest-all-btn"></button>
-  <button id="replant-all-btn"></button>
-  <div id="event-banner" style="display: none;">
-    <span id="event-name"></span>
-    <span id="event-desc"></span>
-    <span id="event-timer"></span>
-  </div>
-`;
-
-// Game constants from main.js (simplified for testing)
-global.SEEDS = {
-  star_spud: {
-    name: 'Star Spud',
-    emoji: '🥔',
-    plantEmoji: '🌰',
-    readyEmoji: '🌟🥔',
-    growTime: 60,
-    yield: 10,
-    cost: 0
-  },
-  giggleberry: {
-    name: 'Giggleberry',
-    emoji: '🍓',
-    plantEmoji: '🌱',
-    readyEmoji: '🌟🍓',
-    growTime: 90,
-    yield: 18,
-    cost: 5
-  }
-};
-
-global.UPGRADE_DEFS = {
-  faster_growth: {
-    name: 'Faster Growth',
-    descTemplate: () => 'Grow faster!',
-    cost: [50, 120, 300],
-    effect: [0.9, 0.8, 0.7],
-    maxLevel: 3
-  },
-  better_nurture: {
-    name: 'Better Nurture',
-    descTemplate: () => 'Better nurturing!',
-    cost: [30, 80, 200],
-    effect: [5, 8, 12],
-    maxLevel: 3
-  },
-  unlock_plot: {
-    name: 'Unlock Plot',
-    descTemplate: () => 'More plots!',
-    cost: [100, 500],
-    effect: [1, 1],
-    maxLevel: 2
-  }
-};
-
-global.GAME_EVENTS = {
-  harvest_frenzy: {
-    name: 'Harvest Frenzy',
-    desc: 'Double harvest yields!',
-    duration: 120,
-    applyEffect: (value) => Math.floor(value * 1.5)
-  },
-  super_nurture: {
-    name: 'Super Nurture',
-    desc: 'Enhanced nurturing!',
-    duration: 180,
-    applyEffect: (value) => value * 2
-  }
-};
+// Attach core game data and logic to global for tests
+import * as gameData from '../src/data/gameData.js';
+import * as gameStateModule from '../src/core/gameState.js';
+import * as gameLogic from '../src/core/gameLogic.js';
+import * as audioSystem from '../src/systems/audioSystem.js';
+import * as eventSystem from '../src/systems/eventSystem.js';
+import * as gameLoop from '../src/systems/gameLoop.js';
 
 
 // Initialize game state variables
